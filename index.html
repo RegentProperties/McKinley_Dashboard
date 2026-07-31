@@ -1,0 +1,1280 @@
+<title>The McKinley — Asset Management Dashboard</title>
+<meta charset="utf-8">
+<style>
+  :root{
+    --ink:#16233D;
+    --ink-soft:#4C5A72;
+    --bg:#F1F4F9;
+    --surface:#FFFFFF;
+    --line:#DCE2EC;
+    --line-soft:#EAEEF5;
+    --navy:#4F5D45;
+    --navy-deep:#333D2C;
+    --navy-soft:#EBEEE6;
+    --comp:#B7BFCC;
+    --comp-line:#7E889A;
+    --amber:#A9682B;
+    --amber-bg:#FBF1E6;
+    --good:#3D7A5C;
+    --good-bg:#E9F2ED;
+    --bad:#AB4A34;
+    --bad-bg:#F8EAE5;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --ink:#E7ECF6;
+    --ink-soft:#9AA7C2;
+    --bg:#0F1620;
+    --surface:#161F2C;
+    --line:#2A3648;
+    --line-soft:#20293785;
+    --navy:#8DA47F;
+    --navy-deep:#C4D3B8;
+    --navy-soft:#232B22;
+    --comp:#4B5566;
+    --comp-line:#69748A;
+    --amber:#D69A5C;
+    --amber-bg:#3A2C1B;
+    --good:#6FAE8D;
+    --good-bg:#16261F;
+    --bad:#D97E68;
+    --bad-bg:#2E1B16;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#E7ECF6;
+      --ink-soft:#9AA7C2;
+      --bg:#0F1620;
+      --surface:#161F2C;
+      --line:#2A3648;
+      --line-soft:#20293785;
+      --navy:#8DA47F;
+      --navy-deep:#C4D3B8;
+      --navy-soft:#232B22;
+      --comp:#4B5566;
+      --comp-line:#69748A;
+      --amber:#D69A5C;
+      --amber-bg:#3A2C1B;
+      --good:#6FAE8D;
+      --good-bg:#16261F;
+      --bad:#D97E68;
+      --bad-bg:#2E1B16;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;}
+  .page{max-width:1220px;margin:0 auto;padding:32px 26px 64px;}
+
+  header.report-head{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+    border-bottom:2px solid var(--navy);padding-bottom:16px;margin-bottom:22px;flex-wrap:wrap;
+  }
+  header.report-head h1{font-family:var(--serif);font-weight:600;font-size:29px;margin:0 0 4px;color:var(--navy-deep);text-wrap:balance;}
+  header.report-head .addr{font-size:13.5px;color:var(--ink-soft);letter-spacing:.02em;}
+  header.report-head .meta{text-align:right;font-size:12px;color:var(--ink-soft);line-height:1.65;}
+  header.report-head .meta strong{color:var(--ink);font-weight:600;}
+
+  .tabs{display:flex;gap:3px;border-bottom:1px solid var(--line);margin-bottom:24px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:20;padding-top:2px;}
+  .tab-btn{
+    appearance:none;border:1px solid transparent;border-bottom:none;background:transparent;
+    font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink-soft);
+    padding:10px 16px;cursor:pointer;border-radius:5px 5px 0 0;position:relative;top:1px;
+  }
+  .tab-btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+  .tab-btn.active{color:var(--navy-deep);background:var(--surface);border-color:var(--line);border-bottom:1px solid var(--surface);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:fade .15s ease;}
+  @keyframes fade{from{opacity:.4}to{opacity:1}}
+  @media (prefers-reduced-motion: reduce){ .tab-panel.active{animation:none;} }
+
+  section{margin-bottom:30px;}
+  h2.section-title{
+    font-family:var(--serif);font-size:18.5px;font-weight:600;color:var(--navy-deep);
+    margin:0 0 13px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  }
+  h2.section-title small{font-family:var(--sans);font-weight:400;font-size:12px;color:var(--ink-soft);}
+  h3.sub-title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--navy-deep);margin:0 0 10px;}
+
+  .callout{background:var(--amber-bg);border:1px solid color-mix(in srgb, var(--amber) 45%, var(--line));border-left:4px solid var(--amber);border-radius:3px;padding:13px 17px;font-size:13.5px;color:var(--ink);}
+  .callout strong{color:var(--navy-deep);}
+  .callout ul{margin:7px 0 0;padding-left:18px;}
+  .callout li{margin-bottom:4px;}
+  .callout.flag{background:var(--bad-bg);border-color:color-mix(in srgb, var(--bad) 45%, var(--line));border-left-color:var(--bad);}
+  .callout.flag strong{color:var(--bad);}
+  .callout.flag table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+  .callout.flag table th,.callout.flag table td{padding:5px 8px;text-align:right;border-bottom:1px solid color-mix(in srgb, var(--bad) 20%, transparent);font-variant-numeric:tabular-nums;}
+  .callout.flag table th:first-child,.callout.flag table td:first-child{text-align:left;font-variant-numeric:normal;}
+  .callout.flag table thead th{font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);}
+  .callout.flag table tfoot td{font-weight:700;border-top:1px solid var(--bad);border-bottom:none;}
+
+  /* KPI tiles */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;}
+  .kpi-tile{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;position:relative;overflow:hidden;}
+  .kpi-tile .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .kpi-tile.good .stripe{background:var(--good);}
+  .kpi-tile.warn .stripe{background:var(--amber);}
+  .kpi-tile.bad .stripe{background:var(--bad);}
+  .kpi-tile.flat .stripe{background:var(--comp-line);}
+  .kpi-tile .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .kpi-tile .value{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1;}
+  .kpi-tile .sub{font-size:11.5px;color:var(--ink-soft);margin-top:5px;}
+  .kpi-tile .pill{
+    display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;letter-spacing:.02em;
+    padding:2px 7px;border-radius:20px;
+  }
+  .kpi-tile.good .pill{background:var(--good-bg);color:var(--good);}
+  .kpi-tile.warn .pill{background:var(--amber-bg);color:var(--amber);}
+  .kpi-tile.bad .pill{background:var(--bad-bg);color:var(--bad);}
+  .kpi-tile.flat .pill{background:var(--line-soft);color:var(--ink-soft);}
+
+  .chart-shell{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px 22px 14px;}
+  .chart-shell.split{display:grid;grid-template-columns:1fr 240px;gap:20px;}
+  @media (max-width:820px){.chart-shell.split{grid-template-columns:1fr;}}
+  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:900px){.chart-row{grid-template-columns:1fr;}}
+  .chart-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media (max-width:960px){.chart-row-3{grid-template-columns:1fr 1fr;}}
+  @media (max-width:640px){.chart-row-3{grid-template-columns:1fr;}}
+  svg.plot{width:100%;height:auto;display:block;overflow:visible;}
+  .axis line,.axis path{stroke:var(--line);}
+  .gridline{stroke:var(--line-soft);stroke-width:1;}
+  .axis-label{font-family:var(--sans);font-size:11.5px;fill:var(--ink-soft);}
+  .tick-label{font-family:var(--sans);font-size:10px;fill:var(--ink-soft);font-variant-numeric:tabular-nums;}
+  .bar{cursor:pointer;transition:opacity .12s;}
+  .bar:hover{opacity:.82;}
+  .target-line{stroke:var(--bad);stroke-width:1.4;stroke-dasharray:4 3;}
+  .target-band{fill:var(--good);opacity:.08;}
+
+  .tooltip{
+    position:fixed;pointer-events:none;background:#1E2A44;color:#EDF1F9;font-size:12px;line-height:1.5;
+    padding:8px 11px;border-radius:4px;box-shadow:0 4px 14px rgba(14,37,71,.28);white-space:nowrap;
+    opacity:0;transition:opacity .1s;z-index:50;
+  }
+  .tooltip.show{opacity:1;}
+  .tooltip .t-title{font-weight:700;color:#fff;}
+  .tooltip .t-row{color:#C7D1E4;}
+
+  .legend-row{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);}
+  .legend-row .li{display:flex;align-items:center;gap:6px;}
+  .legend-row .sw{width:11px;height:11px;border-radius:2px;flex:none;}
+
+  table.stats{width:100%;border-collapse:collapse;font-size:13px;}
+  table.stats th,table.stats td{padding:7px 11px;text-align:right;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;}
+  table.stats th:first-child,table.stats td:first-child{text-align:left;font-variant-numeric:normal;}
+  table.stats thead th{font-weight:600;color:var(--ink-soft);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line);}
+  table.stats tbody tr.total-row{background:var(--navy-soft);font-weight:700;}
+  table.stats tbody tr.total-row td:first-child{color:var(--navy-deep);}
+  table.stats tbody tr.subtotal-row{font-weight:600;font-style:italic;border-top:1px solid var(--line);}
+  table.stats tbody tr.subtotal-row.controllable{background:var(--good-bg);}
+  table.stats tbody tr.subtotal-row.controllable td:first-child{color:var(--good);}
+  table.stats tbody tr.subtotal-row.noncontrollable{background:var(--amber-bg);}
+  table.stats tbody tr.subtotal-row.noncontrollable td:first-child{color:var(--amber);}
+  table.stats tbody tr:hover td{background:var(--line-soft);}
+  .table-scroll{overflow-x:auto;}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;letter-spacing:.02em;}
+  .badge.good{background:var(--good-bg);color:var(--good);}
+  .badge.bad{background:var(--bad-bg);color:var(--bad);}
+  .badge.warn{background:var(--amber-bg);color:var(--amber);}
+
+  .unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
+  .unit-card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:10px 13px;font-size:12.5px;}
+  .unit-card.ready{box-shadow:inset 3px 0 0 var(--good);}
+  .unit-card.notready{box-shadow:inset 3px 0 0 var(--amber);}
+  .unit-card.notice{box-shadow:inset 3px 0 0 var(--bad);}
+  .unit-card .u-no{font-weight:700;color:var(--ink);font-size:13.5px;}
+  .unit-card .u-type{color:var(--ink-soft);font-size:11.5px;}
+  .unit-card .u-rent{margin-top:5px;font-variant-numeric:tabular-nums;color:var(--navy-deep);font-weight:600;}
+  .unit-card .u-extra{color:var(--ink-soft);font-size:11px;margin-top:2px;}
+
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px 14px;}
+  .comp-card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 13px;font-size:12.5px;}
+  .comp-card.subject{border-color:var(--navy);box-shadow:inset 3px 0 0 var(--navy);}
+  .comp-card .name{font-weight:600;color:var(--ink);}
+  .comp-card .sub{color:var(--ink-soft);font-size:11.5px;margin-top:2px;}
+  .comp-card .stat{font-variant-numeric:tabular-nums;color:var(--navy-deep);font-weight:600;font-size:12.5px;margin-top:4px;}
+
+  footer.notes{font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:15px;margin-top:36px;}
+  footer.notes p{margin:0 0 7px;}
+</style>
+
+<div class="page">
+
+  <header class="report-head">
+    <div>
+      <h1>The McKinley</h1>
+      <div class="addr">Downtown Phoenix — Roosevelt Row submarket &nbsp;·&nbsp; 108 units (1 model)</div>
+    </div>
+    <div class="meta">
+      Rent roll as of: <strong>6/30/2026</strong> &nbsp;·&nbsp; T12 financials: <strong>May 2025 – Apr 2026</strong><br>
+      Asset Lead: <strong>Luke Montgomery</strong> &nbsp;·&nbsp; PM: <strong>Caitlin Plante</strong> (Cirrus) &nbsp;·&nbsp; Leasing: <strong>Mariah Macias</strong><br>
+      System: <strong>Yardi</strong> &nbsp;·&nbsp; Market data: <strong>HelloData.ai</strong>, 7/31/2026
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div id="panels"></div>
+
+  <footer class="notes">
+    <p><strong>Sources:</strong> Regent Financials T12 (McKinley T12_2026.04.xlsx), Rent Roll snapshots (04.30 / 05.31 / 06.30.2026), Lead Source Attribution &amp; ILS Spend logs, HelloData.ai competitive rent set (7/31/2026). Benchmarks per Regent Properties Asset Manager SOP (7/24/2026).</p>
+    <p>NOI excludes debt service, depreciation, acquisition costs, unrealized gain/loss, and partnership/non-recurring expenses, consistent with the Regent chart of accounts.</p>
+  </footer>
+
+</div>
+
+<script>
+/* ============================= DATA ============================= */
+const DATA = {
+  property: {
+    units: 108, model: 1, inService: 107
+  },
+  occupancy: {
+    statuses: [
+      {label:'Occupied — No Notice', value:95, kind:'occ'},
+      {label:'Occupied — On Notice', value:4, kind:'occ'},
+      {label:'Vacant — Rented', value:4, kind:'vacRented'},
+      {label:'Vacant — Unrented Ready', value:4, kind:'vac'}
+    ],
+    physicalOccPct: 92.5,
+    leasedPct: 96.3,
+    trend: [
+      {month:'Apr ’26', occPct:94.4, leasedPct:95.3},
+      {month:'May ’26', occPct:94.4, leasedPct:96.3},
+      {month:'Jun ’26', occPct:92.5, leasedPct:96.3}
+    ],
+    targetPhysical: 95,
+    targetEconomic: 90
+  },
+  delinquency: { units:4, totalBalance:67, gpr:200600, pctOfGPR:0.03, target:2.0 },
+  lossToLease: -6.9,
+  financials: {
+    months: ['May ’25','Jun ’25','Jul ’25','Aug ’25','Sep ’25','Oct ’25','Nov ’25','Dec ’25','Jan ’26','Feb ’26','Mar ’26','Apr ’26'],
+    totalIncome: [29585,173815,183126,193026,212997,189553,182565,136837,174414,165982,187163,203053],
+    noi: [28698,81077,113879,115756,110252,53074,111814,-28792,77243,75111,91794,79937],
+    controllableOpex: [887,53206,26434,36171,73349,91235,40153,129332,59493,52987,58511,86072],
+    concessionsUpfront: [-1079,-9179,-4345,-14350,0,-2730,-4240,-42867,-22120,-31756,-2637,2019],
+    t12TotalIncome: 2032115,
+    t12NOI: 909843,
+    noiMarginPct: 44.8,
+    opexRatioPct: 55.2,
+    targets: {noiMarginLow:55, noiMarginHigh:60, opexRatioMax:40}
+  },
+  expenseComparison: {
+    periods: ['FY2022','FY2023','FY2024','T12 @ Acquisition','Current T12','Astor at Osborn'],
+    periodSub: ['Seller, CY2022','Seller, CY2023','Seller, CY2024 †','Seller, May’24–Apr’25 †','Regent, May’25–Apr’26','Competitor, Mar’25–Feb’26'],
+    units: [108,108,108,108,108,191],
+    categories: [
+      {key:'payroll', label:'Payroll & Related', group:'controllable', color:'#333D2C', values:[1912,1881,1806,1887,2124,1959]},
+      {key:'advertising', label:'Advertising', group:'controllable', color:'#B0432E', values:[438,481,537,535,277,713]},
+      {key:'ga', label:'General & Administrative', group:'controllable', color:'#3D6B8C', values:[611,618,609,633,859,742]},
+      {key:'utilities', label:'Utilities', group:'controllable', color:'#4A9188', values:[832,887,895,924,910,703]},
+      {key:'contracted', label:'Contracted Costs', group:'controllable', color:'#7A5C8C', values:[468,573,580,640,1254,731]},
+      {key:'maintenance', label:'Maintenance', group:'controllable', color:'#7E889A', values:[271,305,395,416,691,732]},
+      {key:'turnover', label:'Turnover Expense', group:'controllable', color:'#B7BFCC', values:[40,71,47,56,438,233]},
+      {key:'mgmtfee', label:'Management Fees', group:'noncontrollable', color:'#C9975A', values:[811,798,796,777,548,541]},
+      {key:'insurance', label:'Insurance', group:'noncontrollable', color:'#A9682B', values:[531,666,804,833,684,583]},
+      {key:'retax', label:'Real Estate Tax', group:'noncontrollable', color:'#7A4A1F', values:[2508,2597,2621,2674,2605,2355]}
+    ]
+  },
+  tradeOuts: {
+    asOf: '7/13/2026',
+    periods: ['30 Days','60 Days','90 Days'],
+    newLeases: [6.6, 4.0, -0.2],
+    renewals: [2.1, 2.6, 0.7],
+    retention: [40.0, 50.0, 45.5]
+  },
+  leaseExpiration: [
+    {month:'Jul ’26',count:7},{month:'Aug ’26',count:4},{month:'Sep ’26',count:8},
+    {month:'Oct ’26',count:4},{month:'Nov ’26',count:11},{month:'Dec ’26',count:10},
+    {month:'Jan ’27',count:11},{month:'Feb ’27',count:12},{month:'Mar ’27',count:7},
+    {month:'Apr ’27',count:7},{month:'May ’27',count:7},{month:'Jun ’27',count:2},
+    {month:'Jul ’27',count:2},{month:'Aug ’27',count:4}
+  ],
+  leasingFunnel: {
+    months: [
+      {month:'Dec ’25', leads:82, tours:21, apps:19, leases:6},
+      {month:'Jan ’26', leads:64, tours:7, apps:11, leases:14},
+      {month:'Feb ’26', leads:52, tours:5, apps:6, leases:4},
+      {month:'Mar ’26', leads:43, tours:9, apps:4, leases:1},
+      {month:'Apr ’26', leads:104, tours:9, apps:2, leases:4},
+      {month:'May ’26', leads:38, tours:19, apps:5, leases:4}
+    ],
+    targets: {leadTour:30, tourApp:30, appLease:80, overall:7}
+  },
+  marketing: {
+    sources: [
+      {name:'Apartments.com', monthlySpend:2500, months:6, leads:105, leases:9, cpl:142.86, cplease:1666.67},
+      {name:'Apartment List', monthlySpend:53.46, months:6, leads:119, leases:3, cpl:2.70, cplease:106.92}
+    ]
+  },
+  unitMix: [
+    {bed:'Studio', count:28, occupied:28, occPct:100.0, avgSqft:576, avgMarket:1455, avgRent:1432, psfMarket:2.53, psfRent:2.49, lossToLeasePct:-1.6},
+    {bed:'1 Bedroom', count:65, occupied:58, occPct:89.2, avgSqft:783, avgMarket:1832, avgRent:1791, psfMarket:2.34, psfRent:2.29, lossToLeasePct:-2.2},
+    {bed:'2 Bedroom', count:14, occupied:13, occPct:92.9, avgSqft:1129, avgMarket:2781, avgRent:2587, psfMarket:2.46, psfRent:2.29, lossToLeasePct:-7.0}
+  ],
+  floorplans: [
+    {type:'0X1.524',bed:'Studio',sqft:524,count:12,avgMarket:1439,avgRent:1430},
+    {type:'0X1.548',bed:'Studio',sqft:548,count:4,avgMarket:1397,avgRent:1370},
+    {type:'0X1.553',bed:'Studio',sqft:553,count:6,avgMarket:1401,avgRent:1360},
+    {type:'0X1.653',bed:'Studio',sqft:653,count:2,avgMarket:1538,avgRent:1560},
+    {type:'0X1.755',bed:'Studio',sqft:755,count:4,avgMarket:1603,avgRent:1543},
+    {type:'1X1.600',bed:'1 Bedroom',sqft:600,count:8,avgMarket:1578,avgRent:1524},
+    {type:'1X1.750',bed:'1 Bedroom',sqft:750,count:4,avgMarket:1764,avgRent:1747},
+    {type:'1X1.756',bed:'1 Bedroom',sqft:756,count:4,avgMarket:1846,avgRent:1812},
+    {type:'1X1.772',bed:'1 Bedroom',sqft:772,count:4,avgMarket:1790,avgRent:1760},
+    {type:'1X1.778',bed:'1 Bedroom',sqft:778,count:6,avgMarket:1763,avgRent:1735},
+    {type:'1X1.787',bed:'1 Bedroom',sqft:787,count:15,avgMarket:1820,avgRent:1770},
+    {type:'1X1.824',bed:'1 Bedroom',sqft:824,count:8,avgMarket:1950,avgRent:1898},
+    {type:'1X1.831',bed:'1 Bedroom',sqft:831,count:4,avgMarket:1919,avgRent:1903},
+    {type:'1X1.863',bed:'1 Bedroom',sqft:863,count:4,avgMarket:1932,avgRent:1945},
+    {type:'1X1.874',bed:'1 Bedroom',sqft:874,count:4,avgMarket:1926,avgRent:1877},
+    {type:'1X1.915',bed:'1 Bedroom',sqft:915,count:4,avgMarket:2062,avgRent:1932},
+    {type:'2X2.1070',bed:'2 Bedroom',sqft:1070,count:2,avgMarket:2908,avgRent:2690},
+    {type:'2X2.1120',bed:'2 Bedroom',sqft:1120,count:8,avgMarket:2743,avgRent:2593},
+    {type:'2X2.1175',bed:'2 Bedroom',sqft:1175,count:4,avgMarket:2792,avgRent:2527}
+  ],
+  vacantUnits: {
+    ready: [
+      {unit:318,type:'2X2.1120',sqft:1120,marketRent:2737},
+      {unit:404,type:'1X1.787',sqft:787,marketRent:1801},
+      {unit:423,type:'1X1.750',sqft:750,marketRent:1810},
+      {unit:511,type:'1X1.600',sqft:600,marketRent:1595}
+    ],
+    rentedReady: [
+      {unit:315,type:'1X1.778',sqft:778,marketRent:1795}
+    ],
+    notReady: [
+      {unit:416,type:'1X1.874',sqft:874,marketRent:1900},
+      {unit:504,type:'1X1.787',sqft:787,marketRent:1859},
+      {unit:519,type:'1X1.915',sqft:915,marketRent:2067}
+    ],
+    noticeUnrented: [
+      {unit:118,type:'2X2.1070',sqft:1070,rent:2675,marketRent:2825,moveOut:'Aug 4, 2026'},
+      {unit:303,type:'1X1.787',sqft:787,rent:1829,marketRent:1849,moveOut:'Jul 31, 2026'},
+      {unit:405,type:'1X1.787',sqft:787,rent:1648,marketRent:1817,moveOut:'Jul 10, 2026'}
+    ],
+    noticeRented: [
+      {unit:521,type:'0X1.548',sqft:548,rent:1450,marketRent:1506}
+    ]
+  },
+  marketComps: [
+    {name:'The McKinley', subject:true, avgSf:832, avgRent:2046, avgPsf:2.46, dom:90, leased:2, active:9},
+    {name:'Broadstone Portland', avgSf:823, avgRent:1951, avgPsf:2.37, dom:48, leased:11, active:11},
+    {name:'The Rey Downtown', avgSf:901, avgRent:1946, avgPsf:2.16, dom:81, leased:18, active:19},
+    {name:'AVE Phoenix Terra', avgSf:721, avgRent:2072, avgPsf:2.87, dom:47, leased:10, active:23},
+    {name:'ECO PHX', avgSf:800, avgRent:1948, avgPsf:2.44, dom:249, leased:1, active:2},
+    {name:'Union at Roosevelt II', avgSf:735, avgRent:1697, avgPsf:2.31, dom:130, leased:13, active:25},
+    {name:'Circa Central Avenue', avgSf:720, avgRent:1695, avgPsf:2.35, dom:79, leased:9, active:19},
+    {name:'Lydian', avgSf:745, avgRent:1673, avgPsf:2.25, dom:57, leased:15, active:13},
+    {name:'601 Pax', avgSf:982, avgRent:1751, avgPsf:1.78, dom:56, leased:18, active:16},
+    {name:'iLuminate 290', avgSf:760, avgRent:1617, avgPsf:2.13, dom:124, leased:5, active:9},
+    {name:'Linear 295', avgSf:912, avgRent:1782, avgPsf:1.96, dom:33, leased:1, active:4}
+  ],
+  marketByBed: {
+    'Studio':  {McKinley:{avgSf:652,avgRent:1583}, compAvg:{avgSf:571,avgRent:1495}},
+    '1 Bedroom': {McKinley:{avgSf:757,avgRent:1807}, compAvg:{avgSf:743,avgRent:1695}},
+    '2 Bedroom': {McKinley:{avgSf:1103,avgRent:2833}, compAvg:{avgSf:1116,avgRent:2298}}
+  },
+  marketByBedScatter: {
+    'Studio': [
+      {name:'The McKinley', subject:true, avgSf:548, avgRent:1467, active:1, leased:0},
+      {name:'The McKinley', subject:true, avgSf:755, avgRent:1698, active:1, leased:0},
+      {name:'iluminate290', subject:false, avgSf:530, avgRent:1412, active:2, leased:0},
+      {name:'Broadstone Portland', subject:false, avgSf:622, avgRent:1655, active:2, leased:0},
+      {name:'Circa Central Avenue', subject:false, avgSf:530, avgRent:1345, active:6, leased:1},
+      {name:'Union at Roosevelt II', subject:false, avgSf:560, avgRent:1423, active:1, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:619, avgRent:1288, active:1, leased:0},
+      {name:'Lydian', subject:false, avgSf:540, avgRent:1425, active:1, leased:3},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:562, avgRent:1834, active:0, leased:1},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:610, avgRent:1744, active:1, leased:1}
+    ],
+    '1 Bedroom': [
+      {name:'The McKinley', subject:true, avgSf:600, avgRent:1618, active:1, leased:0},
+      {name:'The McKinley', subject:true, avgSf:750, avgRent:1869, active:0, leased:1},
+      {name:'The McKinley', subject:true, avgSf:787, avgRent:1812, active:2, leased:1},
+      {name:'The McKinley', subject:true, avgSf:831, avgRent:1917, active:1, leased:0},
+      {name:'linear295', subject:false, avgSf:784, avgRent:1645, active:3, leased:0},
+      {name:'iluminate290', subject:false, avgSf:698, avgRent:1526, active:4, leased:1},
+      {name:'iluminate290', subject:false, avgSf:791, avgRent:1841, active:1, leased:0},
+      {name:'iluminate290', subject:false, avgSf:795, avgRent:1463, active:0, leased:3},
+      {name:'iluminate290', subject:false, avgSf:902, avgRent:1979, active:1, leased:0},
+      {name:'iluminate290', subject:false, avgSf:918, avgRent:1982, active:1, leased:0},
+      {name:'Broadstone Portland', subject:false, avgSf:744, avgRent:1777, active:5, leased:3},
+      {name:'Broadstone Portland', subject:false, avgSf:798, avgRent:1853, active:2, leased:3},
+      {name:'Broadstone Portland', subject:false, avgSf:890, avgRent:2115, active:0, leased:1},
+      {name:'Circa Central Avenue', subject:false, avgSf:590, avgRent:1454, active:4, leased:3},
+      {name:'Circa Central Avenue', subject:false, avgSf:619, avgRent:1460, active:2, leased:1},
+      {name:'Circa Central Avenue', subject:false, avgSf:830, avgRent:1788, active:1, leased:4},
+      {name:'The Rey Downtown', subject:false, avgSf:675, avgRent:1557, active:2, leased:0},
+      {name:'The Rey Downtown', subject:false, avgSf:702, avgRent:1655, active:2, leased:0},
+      {name:'The Rey Downtown', subject:false, avgSf:731, avgRent:1638, active:5, leased:5},
+      {name:'The Rey Downtown', subject:false, avgSf:773, avgRent:1744, active:2, leased:6},
+      {name:'The Rey Downtown', subject:false, avgSf:829, avgRent:1755, active:1, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:626, avgRent:1571, active:5, leased:7},
+      {name:'Union at Roosevelt II', subject:false, avgSf:671, avgRent:1646, active:7, leased:4},
+      {name:'Union at Roosevelt II', subject:false, avgSf:690, avgRent:1628, active:2, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:780, avgRent:1428, active:4, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:808, avgRent:1638, active:2, leased:0},
+      {name:'Lydian', subject:false, avgSf:630, avgRent:1520, active:2, leased:2},
+      {name:'Lydian', subject:false, avgSf:690, avgRent:1555, active:2, leased:4},
+      {name:'Lydian', subject:false, avgSf:750, avgRent:1650, active:0, leased:3},
+      {name:'Lydian', subject:false, avgSf:765, avgRent:1690, active:3, leased:0},
+      {name:'Lydian', subject:false, avgSf:780, avgRent:1735, active:3, leased:1},
+      {name:'Lydian', subject:false, avgSf:840, avgRent:1860, active:1, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:485, avgRent:1683, active:8, leased:1},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:514, avgRent:1706, active:0, leased:1},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:566, avgRent:1818, active:1, leased:1},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:712, avgRent:2045, active:1, leased:3},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:712, avgRent:2071, active:2, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:769, avgRent:2140, active:2, leased:2},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:775, avgRent:1900, active:1, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:775, avgRent:2063, active:1, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:1011, avgRent:2365, active:1, leased:0},
+      {name:'ECO PHX', subject:false, avgSf:800, avgRent:1948, active:2, leased:1},
+      {name:'601 Pax', subject:false, avgSf:686, avgRent:1473, active:2, leased:4},
+      {name:'601 Pax', subject:false, avgSf:749, avgRent:1516, active:1, leased:1},
+      {name:'601 Pax', subject:false, avgSf:785, avgRent:1670, active:1, leased:0},
+      {name:'601 Pax', subject:false, avgSf:811, avgRent:1606, active:3, leased:3},
+      {name:'601 Pax', subject:false, avgSf:989, avgRent:1915, active:1, leased:0}
+    ],
+    '2 Bedroom': [
+      {name:'The McKinley', subject:true, avgSf:1070, avgRent:2779, active:1, leased:0},
+      {name:'The McKinley', subject:true, avgSf:1120, avgRent:2860, active:2, leased:0},
+      {name:'linear295', subject:false, avgSf:1103, avgRent:1988, active:1, leased:1},
+      {name:'iluminate290', subject:false, avgSf:1093, avgRent:1999, active:0, leased:1},
+      {name:'Broadstone Portland', subject:false, avgSf:963, avgRent:2197, active:0, leased:2},
+      {name:'Broadstone Portland', subject:false, avgSf:1024, avgRent:2415, active:2, leased:1},
+      {name:'Broadstone Portland', subject:false, avgSf:1029, avgRent:2389, active:0, leased:1},
+      {name:'Circa Central Avenue', subject:false, avgSf:910, avgRent:2241, active:2, leased:0},
+      {name:'Circa Central Avenue', subject:false, avgSf:1015, avgRent:2445, active:2, leased:0},
+      {name:'Circa Central Avenue', subject:false, avgSf:1230, avgRent:2581, active:2, leased:0},
+      {name:'The Rey Downtown', subject:false, avgSf:1109, avgRent:2350, active:1, leased:0},
+      {name:'The Rey Downtown', subject:false, avgSf:1147, avgRent:2295, active:1, leased:0},
+      {name:'The Rey Downtown', subject:false, avgSf:1082, avgRent:2297, active:2, leased:2},
+      {name:'The Rey Downtown', subject:false, avgSf:1147, avgRent:2320, active:0, leased:1},
+      {name:'The Rey Downtown', subject:false, avgSf:1162, avgRent:2326, active:0, leased:1},
+      {name:'The Rey Downtown', subject:false, avgSf:1172, avgRent:2435, active:1, leased:1},
+      {name:'The Rey Downtown', subject:false, avgSf:1219, avgRent:2582, active:0, leased:2},
+      {name:'The Rey Downtown', subject:false, avgSf:1301, avgRent:2491, active:2, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:1080, avgRent:2125, active:1, leased:0},
+      {name:'Union at Roosevelt II', subject:false, avgSf:1155, avgRent:2556, active:0, leased:1},
+      {name:'Union at Roosevelt II', subject:false, avgSf:1162, avgRent:2630, active:2, leased:1},
+      {name:'Lydian', subject:false, avgSf:1144, avgRent:2110, active:1, leased:1},
+      {name:'Lydian', subject:false, avgSf:1240, avgRent:2705, active:0, leased:1},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:1096, avgRent:2850, active:1, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:1121, avgRent:2910, active:2, leased:0},
+      {name:'AVE Phoenix Terra', subject:false, avgSf:1157, avgRent:2817, active:1, leased:0},
+      {name:'601 Pax', subject:false, avgSf:1072, avgRent:1855, active:2, leased:3},
+      {name:'601 Pax', subject:false, avgSf:1085, avgRent:1951, active:1, leased:0},
+      {name:'601 Pax', subject:false, avgSf:1174, avgRent:1895, active:4, leased:6},
+      {name:'601 Pax', subject:false, avgSf:1440, avgRent:2155, active:1, leased:0},
+      {name:'601 Pax', subject:false, avgSf:1525, avgRent:2137, active:0, leased:1}
+    ]
+  },
+  concessions: { mckinley: 5.7, compAvg: 8.6, compN: 7 }
+};
+
+/* ============================= HELPERS ============================= */
+const fmt$ = n => '$' + Math.round(n).toLocaleString('en-US');
+const fmt$1 = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtPct = (n,d=1) => n.toFixed(d) + '%';
+const svgns = 'http://www.w3.org/2000/svg';
+
+function statusOf(actual, target, {higherIsBetter=true, warnBand=0.05}={}){
+  const rel = higherIsBetter ? (actual-target)/Math.abs(target) : (target-actual)/Math.abs(target);
+  if (rel >= 0) return 'good';
+  if (rel >= -warnBand) return 'warn';
+  return 'bad';
+}
+
+let tooltipEl;
+function ensureTooltip(){
+  if (!tooltipEl){
+    tooltipEl = document.createElement('div');
+    tooltipEl.className = 'tooltip';
+    document.body.appendChild(tooltipEl);
+  }
+  return tooltipEl;
+}
+function showTip(evt, html){
+  const t = ensureTooltip();
+  t.innerHTML = html;
+  t.classList.add('show');
+  positionTip(evt);
+}
+function positionTip(evt){
+  const t = ensureTooltip();
+  const x = evt.clientX, y = evt.clientY;
+  t.style.left = x + 'px';
+  t.style.top = (y - 14) + 'px';
+  t.style.transform = 'translate(-50%,-100%)';
+}
+function hideTip(){ if (tooltipEl) tooltipEl.classList.remove('show'); }
+
+/* Grouped/simple vertical bar chart with optional target line. values: [{label, value, color?}] */
+function barChart({data, width=640, height=230, valueFmt=fmt$, target=null, targetLabel='', color='var(--navy)'}){
+  const marginL=48, marginR=14, marginT=16, marginB=34;
+  const innerW = width-marginL-marginR, innerH = height-marginT-marginB;
+  const maxV = Math.max(...data.map(d=>d.value), target||0) * 1.15;
+  const minV = Math.min(0, ...data.map(d=>d.value));
+  const range = maxV-minV;
+  const bw = innerW/data.length;
+  const y = v => marginT + innerH - ((v-minV)/range)*innerH;
+  const zeroY = y(0);
+  let bars='', ticks='';
+  const ticksN=4;
+  for(let i=0;i<=ticksN;i++){
+    const v = minV + range*i/ticksN;
+    const yy = y(v);
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${yy}" y2="${yy}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${yy+3}" text-anchor="end">${valueFmt(v)}</text>`;
+  }
+  data.forEach((d,i)=>{
+    const x = marginL + i*bw + bw*0.18;
+    const w = bw*0.64;
+    const h = Math.abs(y(d.value)-zeroY);
+    const yy = d.value>=0 ? y(d.value) : zeroY;
+    bars += `<rect class="bar" data-i="${i}" x="${x}" y="${yy}" width="${w}" height="${Math.max(h,1)}" fill="${d.color||color}" rx="2"/>`;
+    bars += `<text class="tick-label" x="${x+w/2}" y="${height-marginB+16}" text-anchor="middle">${d.label}</text>`;
+  });
+  let targetSvg='';
+  if (target!==null){
+    const ty = y(target);
+    targetSvg = `<line class="target-line" x1="${marginL}" x2="${width-marginR}" y1="${ty}" y2="${ty}"/>
+      <text class="tick-label" x="${width-marginR}" y="${ty-4}" text-anchor="end" fill="var(--bad)">${targetLabel}</text>`;
+  }
+  return {svg:`<svg class="plot" viewBox="0 0 ${width} ${height}">
+      <g class="axis">${ticks}</g>
+      ${targetSvg}
+      <g>${bars}</g>
+      <line class="axis" x1="${marginL}" x2="${width-marginR}" y1="${zeroY}" y2="${zeroY}" stroke="var(--line)"/>
+    </svg>`, geom:{marginL,marginR,marginT,marginB,innerW,innerH,bw,y,zeroY}};
+}
+
+/* Combo: bars (income) + line (NOI) with dual reference */
+function comboChart({labels, bars, line, width=900, height=280, barFmt=fmt$, lineFmt=fmt$}){
+  const marginL=56, marginR=56, marginT=18, marginB=32;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const maxBar = Math.max(...bars)*1.1;
+  const minLine = Math.min(...line, 0);
+  const maxLine = Math.max(...line)*1.15;
+  const bw = innerW/labels.length;
+  const yBar = v => marginT+innerH - (v/maxBar)*innerH;
+  const rangeLine = maxLine-minLine;
+  const yLine = v => marginT+innerH - ((v-minLine)/rangeLine)*innerH;
+  let bars_svg='', ticks='', pts=[];
+  const ticksN=4;
+  for(let i=0;i<=ticksN;i++){
+    const v = maxBar*i/ticksN;
+    const yy = yBar(v);
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${yy}" y2="${yy}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${yy+3}" text-anchor="end">${barFmt(v)}</text>`;
+  }
+  labels.forEach((lab,i)=>{
+    const x = marginL + i*bw + bw*0.16;
+    const w = bw*0.68;
+    const h = innerH - (yBar(bars[i]) - marginT);
+    bars_svg += `<rect class="bar" data-i="${i}" x="${x}" y="${yBar(bars[i])}" width="${w}" height="${h}" fill="var(--comp)" rx="2"/>`;
+    bars_svg += `<text class="tick-label" x="${x+w/2}" y="${height-marginB+16}" text-anchor="middle">${lab}</text>`;
+    const cx = x+w/2, cy = yLine(line[i]);
+    pts.push([cx,cy]);
+  });
+  const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const zeroLineY = yLine(0);
+  let dots='';
+  pts.forEach((p,i)=>{
+    dots += `<circle class="pt" data-i="${i}" cx="${p[0]}" cy="${p[1]}" r="3.6" fill="var(--navy)" stroke="var(--navy-deep)" stroke-width="1"/>`;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${ticks}</g>
+    <line x1="${marginL}" x2="${width-marginR}" y1="${zeroLineY}" y2="${zeroLineY}" stroke="var(--line)" stroke-dasharray="2 2"/>
+    <g>${bars_svg}</g>
+    <path d="${path}" fill="none" stroke="var(--navy)" stroke-width="2"/>
+    <g>${dots}</g>
+    <line class="axis" x1="${marginL}" x2="${width-marginR}" y1="${marginT+innerH}" y2="${marginT+innerH}" stroke="var(--line)"/>
+  </svg>`;
+}
+
+/* Scatter chart: rent vs sqft */
+function scatterChart({points, width=620, height=340, xFmt=v=>v, yFmt=fmt$}){
+  const marginL=54, marginR=16, marginT=14, marginB=32;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
+  const xMin = Math.min(...xs)*0.94, xMax = Math.max(...xs)*1.04;
+  const yMin = Math.min(...ys)*0.9, yMax = Math.max(...ys)*1.08;
+  const X = v => marginL + (v-xMin)/(xMax-xMin)*innerW;
+  const Y = v => marginT + innerH - (v-yMin)/(yMax-yMin)*innerH;
+  let gridX='', gridY='';
+  for(let i=0;i<=4;i++){
+    const xv = xMin + (xMax-xMin)*i/4;
+    const yv = yMin + (yMax-yMin)*i/4;
+    gridX += `<line class="gridline" x1="${X(xv)}" x2="${X(xv)}" y1="${marginT}" y2="${marginT+innerH}"/>`;
+    gridX += `<text class="tick-label" x="${X(xv)}" y="${height-marginB+16}" text-anchor="middle">${xFmt(xv)}</text>`;
+    gridY += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${Y(yv)}" y2="${Y(yv)}"/>`;
+    gridY += `<text class="tick-label" x="${marginL-8}" y="${Y(yv)+3}" text-anchor="end">${yFmt(yv)}</text>`;
+  }
+  let dots='';
+  points.forEach((p,i)=>{
+    const r = p.subject ? 6.5 : (p.r||5);
+    const fill = p.subject ? 'var(--navy)' : (p.color||'var(--comp)');
+    const stroke = p.subject ? 'var(--navy-deep)' : 'var(--comp-line)';
+    dots += `<circle class="pt" data-i="${i}" cx="${X(p.x)}" cy="${Y(p.y)}" r="${r}" fill="${fill}" fill-opacity="${p.subject?1:.85}" stroke="${stroke}" stroke-width="${p.subject?1.4:.75}"/>`;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${gridX}${gridY}</g>
+    <g>${dots}</g>
+    <line class="axis" x1="${marginL}" x2="${width-marginR}" y1="${marginT+innerH}" y2="${marginT+innerH}" stroke="var(--line)"/>
+    <line class="axis" x1="${marginL}" x2="${marginL}" y1="${marginT}" y2="${marginT+innerH}" stroke="var(--line)"/>
+  </svg>`;
+}
+
+/* Horizontal ranked bar */
+function hBarChart({data, width=560, height=null, valueFmt=fmt$, color='var(--comp)', subjectColor='var(--navy)'}){
+  const rowH = 26;
+  height = height || (data.length*rowH + 24);
+  const marginL=132, marginR=54, marginT=6, marginB=6;
+  const innerW = width-marginL-marginR;
+  const maxV = Math.max(...data.map(d=>d.value))*1.08;
+  let rows='';
+  data.forEach((d,i)=>{
+    const y = marginT + i*rowH;
+    const w = (d.value/maxV)*innerW;
+    rows += `<text class="tick-label" x="${marginL-8}" y="${y+rowH*0.62}" text-anchor="end" font-weight="${d.subject?700:400}" fill="${d.subject?'var(--navy-deep)':'var(--ink-soft)'}">${d.label}</text>`;
+    rows += `<rect class="bar" data-i="${i}" x="${marginL}" y="${y+4}" width="${Math.max(w,2)}" height="${rowH-11}" fill="${d.subject?subjectColor:color}" rx="2"/>`;
+    rows += `<text class="tick-label" x="${marginL+w+6}" y="${y+rowH*0.62}" fill="var(--ink)">${valueFmt(d.value)}${d.marker?` <tspan fill="var(--ink-soft)" font-style="italic">${d.marker}</tspan>`:''}</text>`;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}"><g>${rows}</g></svg>`;
+}
+
+/* Stacked horizontal composition bar */
+function stackBar({segments, width=900, height=52}){
+  const total = segments.reduce((a,s)=>a+s.value,0);
+  let x=0, rects='', labels='';
+  segments.forEach((s,i)=>{
+    const w = s.value/total*width;
+    rects += `<rect class="bar" data-i="${i}" x="${x}" y="0" width="${Math.max(w,0)}" height="${height}" fill="${s.color}"/>`;
+    if (w>36){
+      labels += `<text x="${x+w/2}" y="${height/2+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">${s.value}</text>`;
+    }
+    x+=w;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}" style="height:${height}px">${rects}${labels}</svg>`;
+}
+
+/* Vertical stacked bar chart: one bar per label, stacked by category. categories: [{label,color,values:[...]}] aligned to labels */
+function stackedColumnChart({labels, categories, width=900, height=340, valueFmt=fmt$}){
+  const marginL=60, marginR=14, marginT=20, marginB=34;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const totals = labels.map((_,gi)=> categories.reduce((a,c)=>a+c.values[gi],0));
+  const maxV = Math.max(...totals)*1.12;
+  const groupW = innerW/labels.length;
+  const barW = groupW*0.6;
+  const Y = v => marginT+innerH - (v/maxV)*innerH;
+  let ticks='';
+  for(let i=0;i<=4;i++){
+    const v = maxV*i/4;
+    const yy = Y(v);
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${yy}" y2="${yy}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${yy+3}" text-anchor="end">${valueFmt(v)}</text>`;
+  }
+  let bars='', xlabels='';
+  labels.forEach((lab,gi)=>{
+    const x = marginL + gi*groupW + (groupW-barW)/2;
+    let yCursor = marginT+innerH;
+    categories.forEach((c,ci)=>{
+      const v = c.values[gi];
+      const h = (v/maxV)*innerH;
+      bars += `<rect class="bar" data-gi="${gi}" data-ci="${ci}" x="${x}" y="${yCursor-h}" width="${barW}" height="${Math.max(h,0.5)}" fill="${c.color}"/>`;
+      yCursor -= h;
+    });
+    bars += `<text class="tick-label" x="${x+barW/2}" y="${yCursor-6}" text-anchor="middle" font-weight="700" fill="var(--ink)">${valueFmt(totals[gi])}</text>`;
+    xlabels += `<text class="tick-label" x="${x+barW/2}" y="${height-marginB+16}" text-anchor="middle">${lab}</text>`;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${ticks}</g>
+    <g>${bars}</g>
+    <g>${xlabels}</g>
+    <line class="axis" x1="${marginL}" x2="${width-marginR}" y1="${marginT+innerH}" y2="${marginT+innerH}" stroke="var(--line)"/>
+  </svg>`;
+}
+
+/* attach hover tooltip handlers to elements with data-i inside a container, using a per-item html function */
+function wireTooltips(container, itemHtml){
+  container.querySelectorAll('[data-i]').forEach(el=>{
+    el.addEventListener('mousemove', evt=>{
+      showTip(evt, itemHtml(+el.dataset.i));
+    });
+    el.addEventListener('mouseleave', hideTip);
+  });
+}
+
+/* ============================= TAB SCAFFOLD ============================= */
+const TABS = [
+  {id:'overview', label:'Overview'},
+  {id:'leasing', label:'Leasing & Occupancy'},
+  {id:'rentroll', label:'Rent Roll & Unit Mix'},
+  {id:'financials', label:'Operating Performance'},
+  {id:'market', label:'Market Comparables'}
+];
+
+function initTabs(){
+  const nav = document.getElementById('tabs');
+  const panels = document.getElementById('panels');
+  TABS.forEach((t,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i===0?' active':'');
+    btn.textContent = t.label;
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+t.id).classList.add('active');
+    });
+    nav.appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (i===0?' active':'');
+    panel.id = 'panel-'+t.id;
+    panels.appendChild(panel);
+  });
+}
+
+/* ============================= RENDER: OVERVIEW ============================= */
+function renderOverview(){
+  const el = document.getElementById('panel-overview');
+  const f = DATA.financials, occ = DATA.occupancy, del = DATA.delinquency;
+
+  const tiles = [
+    { label:'Physical Occupancy', value: fmtPct(occ.physicalOccPct), sub:`Target ≥${occ.targetPhysical}% · ${DATA.property.inService} in-service units`, status: statusOf(occ.physicalOccPct, occ.targetPhysical, {warnBand:0.04}) },
+    { label:'Leased %', value: fmtPct(occ.leasedPct), sub:'Occupied + vacant-rented', status:'good' },
+    { label:'T12 NOI Margin', value: fmtPct(f.noiMarginPct), sub:`Target ${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}%`, status: statusOf(f.noiMarginPct, f.targets.noiMarginLow, {warnBand:0.15}) },
+    { label:'Operating Expense Ratio', value: fmtPct(f.opexRatioPct), sub:`Target <${f.targets.opexRatioMax}% of EGI`, status: statusOf(f.opexRatioPct, f.targets.opexRatioMax, {higherIsBetter:false, warnBand:0.2}) },
+    { label:'Delinquency', value: fmtPct(del.pctOfGPR,2), sub:`Target <${del.target}% of GPR · ${del.units} units / ${fmt$(del.totalBalance)}`, status:'good' },
+    { label:'Loss to Lease', value: fmtPct(DATA.lossToLease), sub:'Actual rent vs. market, occupied units', status:'flat' }
+  ];
+
+  el.innerHTML = `
+    <section>
+      <h2 class="section-title">Key Performance Indicators <small>vs. Regent Asset Manager SOP benchmarks</small></h2>
+      <div class="kpi-grid" id="ov-kpis"></div>
+    </section>
+    <section>
+      <div class="callout">
+        <strong>Why T12 NOI margin trails the 55–60% target:</strong> two identifiable, temporary drivers rather than a run-rate issue.
+        <ul>
+          <li><strong>Acquisition stub month (May 2025):</strong> the trailing-12 window opens on the closing month — a partial period with $${(29585).toLocaleString()} of income and one-time acquisition costs, which understates the true annualized base.</li>
+          <li><strong>Lease-up concessions (Dec ’25 – Feb ’26):</strong> upfront concessions totaled roughly $97K across three months (vs. near-zero in the surrounding months) to accelerate absorption after acquisition — occupancy has since climbed and concessions have normalized to near zero by March 2026.</li>
+        </ul>
+        Excluding the May ’25 stub month, T12 NOI margin runs meaningfully closer to target; monitor the next two quarters as concession drag rolls off.
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">Occupancy Composition <small>as of 6/30/2026, ${DATA.property.inService} in-service units</small></h2>
+      <div class="chart-shell">
+        <div id="ov-stack"></div>
+        <div class="legend-row" id="ov-stack-legend"></div>
+      </div>
+    </section>
+  `;
+
+  const kpiWrap = document.getElementById('ov-kpis');
+  tiles.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'kpi-tile ' + t.status;
+    div.innerHTML = `<div class="stripe"></div><div class="label">${t.label}</div><div class="value">${t.value}</div><div class="sub">${t.sub}</div>`;
+    kpiWrap.appendChild(div);
+  });
+
+  const statusColors = {occ:'var(--navy)', vacRented:'var(--amber)', vac:'var(--comp)'};
+  const segs = occ.statuses.map(s=>({...s, color:statusColors[s.kind]}));
+  document.getElementById('ov-stack').innerHTML = stackBar({segments:segs, height:46});
+  wireTooltips(document.getElementById('ov-stack'), i=>{
+    const s = occ.statuses[i];
+    return `<div class="t-title">${s.label}</div><div class="t-row">${s.value} units · ${(s.value/DATA.property.inService*100).toFixed(1)}% of in-service</div>`;
+  });
+  const legend = document.getElementById('ov-stack-legend');
+  occ.statuses.forEach(s=>{
+    legend.innerHTML += `<div class="li"><span class="sw" style="background:${statusColors[s.kind]}"></span>${s.label} — ${s.value}</div>`;
+  });
+}
+
+/* ============================= RENDER: LEASING & OCCUPANCY ============================= */
+function renderLeasing(){
+  const el = document.getElementById('panel-leasing');
+  const occ = DATA.occupancy, lf = DATA.leasingFunnel, exp = DATA.leaseExpiration;
+
+  el.innerHTML = `
+    <section>
+      <h2 class="section-title">Occupancy Trend <small>physical vs. leased, trailing 3 months</small></h2>
+      <div class="chart-shell"><div id="occ-trend"></div></div>
+    </section>
+    <section>
+      <h2 class="section-title">Leasing Funnel <small>monthly leads → tours → applications → leases, Dec ’25 – May ’26</small></h2>
+      <div class="chart-shell"><div id="funnel-chart"></div>
+        <div class="legend-row">
+          <div class="li"><span class="sw" style="background:var(--comp)"></span>Leads</div>
+          <div class="li"><span class="sw" style="background:var(--navy)"></span>Tours</div>
+          <div class="li"><span class="sw" style="background:var(--amber)"></span>Applications</div>
+          <div class="li"><span class="sw" style="background:var(--good)"></span>Leases</div>
+        </div>
+      </div>
+      <div class="chart-row" style="margin-top:14px;">
+        ${funnelKpiCard('Lead → Tour', lf.months.reduce((a,m)=>a+m.tours,0)/lf.months.reduce((a,m)=>a+m.leads,0)*100, lf.targets.leadTour)}
+        ${funnelKpiCard('Tour → App', lf.months.reduce((a,m)=>a+m.apps,0)/lf.months.reduce((a,m)=>a+m.tours,0)*100, lf.targets.tourApp)}
+      </div>
+      <div class="chart-row" style="margin-top:10px;">
+        ${funnelKpiCard('Overall Conversion', lf.months.reduce((a,m)=>a+m.leases,0)/lf.months.reduce((a,m)=>a+m.leads,0)*100, lf.targets.overall)}
+        ${funnelKpiCard('Total Leases Signed', lf.months.reduce((a,m)=>a+m.leases,0), null, true)}
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">Lease Trade-Outs <small>new vs. renewal, as of ${DATA.tradeOuts.asOf}</small></h2>
+      <div class="chart-shell"><div id="fin-tradeout"></div>
+        <div class="legend-row">
+          <div class="li"><span class="sw" style="background:var(--comp)"></span>New Leases (Mkt)</div>
+          <div class="li"><span class="sw" style="background:var(--navy)"></span>Renewals (Mkt)</div>
+        </div>
+      </div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-top:12px;">
+        ${DATA.tradeOuts.periods.map((p,i)=>`
+          <div class="kpi-tile flat"><div class="stripe"></div><div class="label">${p} Retention</div><div class="value">${DATA.tradeOuts.retention[i].toFixed(1)}%</div><div class="sub">SOP target ≥55%</div></div>
+        `).join('')}
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">Lease Expiration Schedule <small>by month, from 6/30/2026 rent roll</small></h2>
+      <div class="chart-shell"><div id="exp-chart"></div></div>
+    </section>
+    <section>
+      <h2 class="section-title">Notice Units <small>occupied, notice to vacate given</small></h2>
+      <div class="unit-grid" id="notice-units"></div>
+    </section>
+  `;
+
+  // occupancy trend as small combo (two lines via two bar-esque overlays) -> use comboChart repurposed as dual-line
+  const months = occ.trend.map(t=>t.month);
+  document.getElementById('occ-trend').innerHTML = dualLineChart({
+    labels: months,
+    seriesA: occ.trend.map(t=>t.occPct), labelA:'Physical Occupancy',
+    seriesB: occ.trend.map(t=>t.leasedPct), labelB:'Leased %',
+    target: occ.targetPhysical
+  });
+
+  document.getElementById('funnel-chart').innerHTML = groupedBarChart({
+    labels: lf.months.map(m=>m.month),
+    series: [
+      {label:'Leads', color:'var(--comp)', values: lf.months.map(m=>m.leads)},
+      {label:'Tours', color:'var(--navy)', values: lf.months.map(m=>m.tours)},
+      {label:'Applications', color:'var(--amber)', values: lf.months.map(m=>m.apps)},
+      {label:'Leases', color:'var(--good)', values: lf.months.map(m=>m.leases)}
+    ]
+  });
+
+  const to = DATA.tradeOuts;
+  document.getElementById('fin-tradeout').innerHTML = groupedBarChart({
+    labels: to.periods,
+    series: [
+      {label:'New Leases', color:'var(--comp)', values: to.newLeases},
+      {label:'Renewals', color:'var(--navy)', values: to.renewals}
+    ],
+    valueFmt: v=>v.toFixed(1)+'%', width:700, height:230
+  });
+  document.getElementById('fin-tradeout').querySelectorAll('[data-gi]').forEach(el=>{
+    const gi = +el.dataset.gi, si = +el.dataset.si;
+    const series = si===0 ? to.newLeases : to.renewals;
+    const label = si===0 ? 'New Leases (Mkt)' : 'Renewals (Mkt)';
+    el.addEventListener('mousemove', evt=>{
+      showTip(evt, `<div class="t-title">${to.periods[gi]} — ${label}</div><div class="t-row">Trade-out: ${series[gi]>0?'+':''}${series[gi].toFixed(1)}%</div>`);
+    });
+    el.addEventListener('mouseleave', hideTip);
+  });
+
+  document.getElementById('exp-chart').innerHTML = barChart({
+    data: exp.map(e=>({label:e.month, value:e.count})),
+    valueFmt: v=>Math.round(v).toString(), width:900, height:220
+  }).svg;
+
+  const nu = document.getElementById('notice-units');
+  const allNotice = [
+    ...DATA.vacantUnits.noticeUnrented.map(u=>({...u, tag:'Unrented'})),
+    ...DATA.vacantUnits.noticeRented.map(u=>({...u, tag:'Rented'}))
+  ];
+  allNotice.forEach(u=>{
+    const card = document.createElement('div');
+    card.className = 'unit-card notice';
+    card.innerHTML = `<div class="u-no">Unit ${u.unit} <span class="badge ${u.tag==='Rented'?'good':'warn'}">${u.tag}</span></div>
+      <div class="u-type">${u.type} · ${u.sqft} sf</div>
+      <div class="u-rent">${fmt$(u.rent)} <span style="color:var(--ink-soft);font-weight:400;">/ mkt ${fmt$(u.marketRent)}</span></div>
+      ${u.moveOut?`<div class="u-extra">Move-out: ${u.moveOut}</div>`:''}`;
+    nu.appendChild(card);
+  });
+}
+function funnelKpiCard(label, value, target, isCount){
+  const pct = isCount ? value : value.toFixed(1)+'%';
+  const status = (target===null) ? 'flat' : statusOf(value, target, {warnBand:0.25});
+  return `<div class="kpi-tile ${status}"><div class="stripe"></div><div class="label">${label}</div><div class="value">${pct}</div>${target!==null?`<div class="sub">SOP industry avg: ${target}%</div>`:'<div class="sub">Dec ’25 – May ’26</div>'}</div>`;
+}
+function dualLineChart({labels, seriesA, labelA, seriesB, labelB, target}){
+  const width=900, height=240, marginL=52, marginR=20, marginT=18, marginB=32;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const all = [...seriesA, ...seriesB, target];
+  const minV = Math.min(...all)-2, maxV = Math.max(...all)+2;
+  const X = i => marginL + innerW*(labels.length===1?0.5:i/(labels.length-1));
+  const Y = v => marginT + innerH - (v-minV)/(maxV-minV)*innerH;
+  let ticks='';
+  for(let i=0;i<=4;i++){
+    const v = minV + (maxV-minV)*i/4;
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${Y(v)}" y2="${Y(v)}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${Y(v)+3}" text-anchor="end">${v.toFixed(0)}%</text>`;
+  }
+  const mkPath = (arr)=> arr.map((v,i)=> (i===0?'M':'L')+X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  const mkDots = (arr,color,cls)=> arr.map((v,i)=>`<circle class="pt ${cls}" data-i="${i}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="${color}" stroke="#fff" stroke-width="1"/>`).join('');
+  let xlabels='';
+  labels.forEach((l,i)=> xlabels += `<text class="tick-label" x="${X(i)}" y="${height-marginB+16}" text-anchor="middle">${l}</text>`);
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${ticks}</g>
+    <line class="target-line" x1="${marginL}" x2="${width-marginR}" y1="${Y(target)}" y2="${Y(target)}"/>
+    <text class="tick-label" x="${width-marginR}" y="${Y(target)-4}" text-anchor="end" fill="var(--bad)">Target ${target}%</text>
+    <path d="${mkPath(seriesA)}" fill="none" stroke="var(--navy)" stroke-width="2.2"/>
+    <path d="${mkPath(seriesB)}" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-dasharray="5 3"/>
+    ${mkDots(seriesA,'var(--navy)','a')}
+    ${mkDots(seriesB,'var(--amber)','b')}
+    <g>${xlabels}</g>
+  </svg>
+  <div class="legend-row">
+    <div class="li"><span class="sw" style="background:var(--navy)"></span>${labelA}</div>
+    <div class="li"><span class="sw" style="background:var(--amber)"></span>${labelB}</div>
+    <div class="li"><span class="sw" style="background:var(--bad)"></span>SOP target</div>
+  </div>`;
+}
+function groupedBarChart({labels, series, width=900, height=260, valueFmt=v=>Math.round(v)}){
+  const marginL=48, marginR=14, marginT=16, marginB=34;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const allV = series.flatMap(s=>s.values);
+  const maxV = Math.max(...allV, 0)*1.15;
+  const minV = Math.min(...allV, 0)*1.15;
+  const range = maxV-minV || 1;
+  const groupW = innerW/labels.length;
+  const barW = groupW/(series.length+1);
+  const Y = v => marginT+innerH - ((v-minV)/range)*innerH;
+  const zeroY = Y(0);
+  let ticks='';
+  for(let i=0;i<=4;i++){
+    const v = minV + range*i/4;
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${Y(v)}" y2="${Y(v)}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${Y(v)+3}" text-anchor="end">${valueFmt(v)}</text>`;
+  }
+  let bars='', xlabels='';
+  labels.forEach((lab,gi)=>{
+    const gx = marginL + gi*groupW;
+    series.forEach((s,si)=>{
+      const x = gx + si*barW + barW*0.1;
+      const v = s.values[gi];
+      const yTop = v>=0 ? Y(v) : zeroY;
+      const h = Math.abs(Y(v)-zeroY);
+      bars += `<rect class="bar" data-gi="${gi}" data-si="${si}" x="${x}" y="${yTop}" width="${barW*0.8}" height="${Math.max(h,1)}" fill="${s.color}" rx="1.5"/>`;
+    });
+    xlabels += `<text class="tick-label" x="${gx+groupW/2}" y="${height-marginB+16}" text-anchor="middle">${lab}</text>`;
+  });
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${ticks}</g>
+    <g>${bars}</g>
+    <g>${xlabels}</g>
+    <line class="axis" x1="${marginL}" x2="${width-marginR}" y1="${zeroY}" y2="${zeroY}" stroke="var(--line)"/>
+  </svg>`;
+}
+
+/* ============================= RENDER: RENT ROLL ============================= */
+function renderRentRoll(){
+  const el = document.getElementById('panel-rentroll');
+  const um = DATA.unitMix, fp = DATA.floorplans, vu = DATA.vacantUnits;
+
+  el.innerHTML = `
+    <section>
+      <h2 class="section-title">Unit Mix Summary <small>as of 6/30/2026</small></h2>
+      <div class="table-scroll"><table class="stats" id="mix-table"></table></div>
+    </section>
+    <section>
+      <h2 class="section-title">Rent vs. Unit Size <small>by floorplan — market rent (light) vs. in-place rent (dark)</small></h2>
+      <div class="chart-shell"><div id="mix-scatter"></div>
+        <div class="legend-row">
+          <div class="li"><span class="sw" style="background:var(--comp)"></span>Market rent</div>
+          <div class="li"><span class="sw" style="background:var(--navy)"></span>In-place rent</div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">Vacant Units <small>ready vs. not ready for move-in</small></h2>
+      <h3 class="sub-title">Ready / Rented-Ready</h3>
+      <div class="unit-grid" id="vac-ready"></div>
+      <h3 class="sub-title" style="margin-top:16px;">Not Ready</h3>
+      <div class="unit-grid" id="vac-notready"></div>
+    </section>
+  `;
+
+  const table = document.getElementById('mix-table');
+  table.innerHTML = `<thead><tr><th>Unit Type</th><th>Units</th><th>Occ %</th><th>Avg SF</th><th>Avg Market</th><th>Avg In-Place</th><th>$/SF (Mkt)</th><th>Loss to Lease</th></tr></thead>`;
+  const tbody = document.createElement('tbody');
+  let totCount=0, totOcc=0;
+  um.forEach(r=>{
+    totCount+=r.count; totOcc+=r.occupied;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.bed}</td><td>${r.count}</td><td>${r.occPct.toFixed(1)}%</td><td>${r.avgSqft}</td><td>${fmt$(r.avgMarket)}</td><td>${fmt$(r.avgRent)}</td><td>${fmt$1(r.psfMarket)}</td><td>${r.lossToLeasePct>0?'+':''}${r.lossToLeasePct.toFixed(1)}%</td>`;
+    tbody.appendChild(tr);
+  });
+  const totRow = document.createElement('tr');
+  totRow.className='total-row';
+  totRow.innerHTML = `<td>Total / Wtd Avg</td><td>${totCount}</td><td>${(totOcc/totCount*100).toFixed(1)}%</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>`;
+  tbody.appendChild(totRow);
+  table.appendChild(tbody);
+
+  const bedColor = {'Studio':'var(--good)','1 Bedroom':'var(--navy)','2 Bedroom':'var(--amber)'};
+  const points = [];
+  fp.forEach(f=>{
+    points.push({x:f.sqft, y:f.avgMarket, color:'var(--comp)', r:4, label:f.type+' (market)'});
+    points.push({x:f.sqft, y:f.avgRent, color:bedColor[f.bed], r:5, label:f.type+' (in-place)'});
+  });
+  document.getElementById('mix-scatter').innerHTML = scatterChart({points, xFmt:v=>Math.round(v)+' sf', width:860, height:340});
+  wireTooltips(document.getElementById('mix-scatter'), i=>{
+    const p = points[i];
+    return `<div class="t-title">${p.label}</div><div class="t-row">${p.x} sf · ${fmt$(p.y)}</div>`;
+  });
+
+  function unitCard(u, cls, badgeText, badgeCls){
+    return `<div class="unit-card ${cls}"><div class="u-no">Unit ${u.unit} ${badgeText?`<span class="badge ${badgeCls}">${badgeText}</span>`:''}</div>
+      <div class="u-type">${u.type} · ${u.sqft} sf</div>
+      <div class="u-rent">${fmt$(u.marketRent)}<span style="color:var(--ink-soft);font-weight:400;"> asking</span></div></div>`;
+  }
+  const ready = document.getElementById('vac-ready');
+  vu.ready.forEach(u=> ready.innerHTML += unitCard(u,'ready','Unrented','warn'));
+  vu.rentedReady.forEach(u=> ready.innerHTML += unitCard(u,'ready','Rented','good'));
+  const notReady = document.getElementById('vac-notready');
+  vu.notReady.forEach(u=> notReady.innerHTML += unitCard(u,'notready','Rented','good'));
+}
+
+/* ============================= RENDER: FINANCIALS ============================= */
+function renderFinancials(){
+  const el = document.getElementById('panel-financials');
+  const f = DATA.financials;
+
+  el.innerHTML = `
+    <section>
+      <h2 class="section-title">Revenue &amp; NOI <small>trailing 12 months, May 2025 – Apr 2026</small></h2>
+      <div class="chart-shell"><div id="fin-combo"></div>
+        <div class="legend-row">
+          <div class="li"><span class="sw" style="background:var(--comp)"></span>Total Income (bars)</div>
+          <div class="li"><span class="sw" style="background:var(--navy)"></span>NOI (line)</div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">NOI Margin by Month <small>vs. SOP target band 55–60%</small></h2>
+      <div class="chart-shell"><div id="fin-margin"></div></div>
+    </section>
+    <section>
+      <h2 class="section-title">Expense Breakdown <small>controllable vs. non-controllable, $/unit annualized</small></h2>
+      <h3 class="sub-title">Controllable Expenses <small style="font-weight:400;color:var(--ink-soft);">$/unit annualized</small></h3>
+      <div class="chart-shell"><div id="fin-expense"></div>
+        <div class="legend-row" id="fin-expense-legend"></div>
+      </div>
+      <h3 class="sub-title" style="margin-top:20px;">Full Comparison <small style="font-weight:400;color:var(--ink-soft);">controllable + non-controllable</small></h3>
+      <div class="table-scroll"><table class="stats" id="expense-table"></table></div>
+      <div class="callout" style="margin-top:12px;">
+        <strong>Reading this table:</strong> all figures are $/unit annualized (McKinley on 108 units throughout its history; Astor at Osborn on its own 191 units — a scale comp, not a twin).
+        <ul>
+          <li>† FY2024 and the T12-at-acquisition both exclude a one-time $100,000 property insurance claim (hit Nov 2024, counted in both overlapping periods) so Insurance reflects run-rate, not the one-off loss — with it included, add ~$926/unit to either period.</li>
+        </ul>
+      </div>
+      <div class="callout flag" style="margin-top:12px;">
+        <strong>Streamlining opportunities — Contracted Costs</strong>: at $1,254/unit, Regent's current T12 runs roughly double every seller-era year and the Astor at Osborn benchmark. Two GL accounts explain almost all of the gap:
+        <table>
+          <thead><tr><th>GL Account</th><th>Current T12</th><th>Seller Range (FY22–T12@Acq)</th><th>Astor Benchmark</th><th>Est. Annual Opportunity</th></tr></thead>
+          <tbody>
+            <tr><td>Contract Cleaning (7120)</td><td>$484/unit</td><td>$37–$76/unit</td><td>$163/unit (Janitorial Contract)</td><td>$25K–$35K</td></tr>
+            <tr><td>Pools/Spas/Fountains (7108)</td><td>$227/unit</td><td>$11–$53/unit</td><td>$44/unit (Pool Supply/Repair, reclassed from R&amp;M)</td><td>$15K–$20K</td></tr>
+            <tr><td>Fire Alarm/Suppression (7060)</td><td>$104/unit</td><td>$33–$45/unit</td><td>$47/unit (Extinguisher/Fire Svcs)</td><td>~$6K</td></tr>
+          </tbody>
+        </table>
+        <ul style="margin-top:10px;">
+          <li>Recommend re-bidding the janitorial and pool service contracts specifically — both sit at 3–7x the seller-era run-rate with no offsetting service-level change on file.</li>
+          <li>Turnover Expense is also elevated ($438/unit vs. $40–$71/unit historically) but that's consistent with the post-acquisition lease-up driving far more unit turns than a stabilized year — worth monitoring as occupancy stabilizes rather than treating as a contract to renegotiate.</li>
+          <li>Payroll is a smaller gap ($2,124/unit vs. $1,806–$1,912 seller-era and $1,959 at Astor, a ~$165–$318/unit premium) — plausibly transition-related (temporary maintenance labor shows $36.6K for the T12); worth revisiting once staffing normalizes, lower priority than the two contracts above.</li>
+        </ul>
+      </div>
+    </section>
+    <section>
+      <h2 class="section-title">ILS Efficacy <small>Dec ’25 – May ’26</small></h2>
+      <div class="chart-row">
+        <div>
+          <h3 class="sub-title">Cost per Lead</h3>
+          <div id="cpl-chart"></div>
+        </div>
+        <div>
+          <h3 class="sub-title">Cost per Lease</h3>
+          <div id="cplease-chart"></div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById('fin-combo').innerHTML = comboChart({
+    labels: f.months, bars: f.totalIncome, line: f.noi
+  });
+  wireTooltips(document.getElementById('fin-combo'), i=>{
+    return `<div class="t-title">${f.months[i]}</div><div class="t-row">Income: ${fmt$(f.totalIncome[i])}</div><div class="t-row">NOI: ${fmt$(f.noi[i])}</div>`;
+  });
+
+  const noiMargins = f.totalIncome.map((inc,i)=> inc ? (f.noi[i]/inc*100) : 0);
+  const marginBars = barChart({
+    data: f.months.map((m,i)=>({label:m, value: noiMargins[i], color: noiMargins[i]>=f.targets.noiMarginLow ? 'var(--good)' : (noiMargins[i]>=0?'var(--amber)':'var(--bad)')})),
+    valueFmt: v=>v.toFixed(0)+'%', width:900, height:230, target: f.targets.noiMarginLow, targetLabel:`${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}% target`
+  });
+  document.getElementById('fin-margin').innerHTML = marginBars.svg;
+  wireTooltips(document.getElementById('fin-margin'), i=> `<div class="t-title">${f.months[i]}</div><div class="t-row">NOI margin: ${noiMargins[i].toFixed(1)}%</div>`);
+
+  const ec = DATA.expenseComparison;
+  const controllableCats = ec.categories.filter(c=>c.group==='controllable');
+  const noncontrollableCats = ec.categories.filter(c=>c.group==='noncontrollable');
+
+  document.getElementById('fin-expense').innerHTML = stackedColumnChart({
+    labels: ec.periods, categories: controllableCats, width:900, height:360
+  });
+  document.getElementById('fin-expense').querySelectorAll('[data-gi]').forEach(el=>{
+    const gi = +el.dataset.gi, ci = +el.dataset.ci;
+    const cat = controllableCats[ci];
+    el.addEventListener('mousemove', evt=>{
+      showTip(evt, `<div class="t-title">${ec.periods[gi]} — ${cat.label}</div><div class="t-row">${fmt$(cat.values[gi])}/unit</div>`);
+    });
+    el.addEventListener('mouseleave', hideTip);
+  });
+  const expLegend = document.getElementById('fin-expense-legend');
+  controllableCats.forEach(c=>{
+    expLegend.innerHTML += `<div class="li"><span class="sw" style="background:${c.color}"></span>${c.label}</div>`;
+  });
+
+  const expTable = document.getElementById('expense-table');
+  expTable.innerHTML = `<thead>
+    <tr><th>$/Unit Annualized</th>${ec.periods.map(p=>`<th>${p}</th>`).join('')}</tr>
+    <tr><th></th>${ec.periodSub.map(s=>`<th style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;">${s}</th>`).join('')}</tr>
+  </thead>`;
+  const tbody = document.createElement('tbody');
+  function catRow(c){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c.label}</td>${c.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
+    return tr;
+  }
+  controllableCats.forEach(c=> tbody.appendChild(catRow(c)));
+  const ctrlSubtotal = ec.periods.map((_,gi)=> controllableCats.reduce((a,c)=>a+c.values[gi],0));
+  const ctrlRow = document.createElement('tr');
+  ctrlRow.className='subtotal-row controllable';
+  ctrlRow.innerHTML = `<td>Controllable Subtotal</td>${ctrlSubtotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
+  tbody.appendChild(ctrlRow);
+  noncontrollableCats.forEach(c=> tbody.appendChild(catRow(c)));
+  const nonCtrlSubtotal = ec.periods.map((_,gi)=> noncontrollableCats.reduce((a,c)=>a+c.values[gi],0));
+  const nonCtrlRow = document.createElement('tr');
+  nonCtrlRow.className='subtotal-row noncontrollable';
+  nonCtrlRow.innerHTML = `<td>Non-Controllable Subtotal</td>${nonCtrlSubtotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
+  tbody.appendChild(nonCtrlRow);
+  const grandTotal = ec.periods.map((_,gi)=> ctrlSubtotal[gi]+nonCtrlSubtotal[gi]);
+  const grandRow = document.createElement('tr');
+  grandRow.className='total-row';
+  grandRow.innerHTML = `<td>Grand Total</td>${grandTotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
+  tbody.appendChild(grandRow);
+  expTable.appendChild(tbody);
+
+  const cplData = DATA.marketing.sources.map(s=>({label:s.name, value:s.cpl, subject:s.name==='Apartments.com'}));
+  document.getElementById('cpl-chart').innerHTML = hBarChart({data: cplData, width:400, valueFmt: v=>'$'+v.toFixed(2), height:80});
+  wireTooltips(document.getElementById('cpl-chart'), i=>{
+    const s = DATA.marketing.sources[i];
+    return `<div class="t-title">${s.name}</div><div class="t-row">${fmt$1(s.monthlySpend)}/mo · ${s.leads} leads over ${s.months} mo</div><div class="t-row">CPL: ${fmt$1(s.cpl)}</div>`;
+  });
+
+  const cpleaseData = DATA.marketing.sources.map(s=>({label:s.name, value:s.cplease, subject:s.name==='Apartments.com'}));
+  document.getElementById('cplease-chart').innerHTML = hBarChart({data: cpleaseData, width:400, valueFmt: v=>'$'+v.toFixed(2), height:80});
+  wireTooltips(document.getElementById('cplease-chart'), i=>{
+    const s = DATA.marketing.sources[i];
+    return `<div class="t-title">${s.name}</div><div class="t-row">${fmt$1(s.monthlySpend)}/mo · ${s.leases} leases over ${s.months} mo</div><div class="t-row">Cost/Lease: ${fmt$1(s.cplease)}</div>`;
+  });
+}
+
+/* ============================= RENDER: MARKET ============================= */
+function renderMarket(){
+  const el = document.getElementById('panel-market');
+  const mc = DATA.marketComps, mb = DATA.marketByBed;
+
+  el.innerHTML = `
+    <section>
+      <h2 class="section-title">Competitive Set <small>HelloData.ai, 7/31/2026</small></h2>
+      <div class="comp-grid" id="comp-grid"></div>
+    </section>
+    <section>
+      <h2 class="section-title">Average Effective Rent <small>ranked, by property — $/sf in parentheses</small></h2>
+      <div class="chart-shell"><div id="comp-rank"></div></div>
+    </section>
+    <section>
+      <h2 class="section-title">Rent vs. Size by Unit Type <small>comp set, McKinley highlighted</small></h2>
+      <div class="chart-row-3" id="comp-scatter-row"></div>
+    </section>
+    <section>
+      <h2 class="section-title">McKinley vs. Comp-Set Average <small>by bedroom type</small></h2>
+      <div class="table-scroll"><table class="stats" id="bed-table"></table></div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr;margin-top:14px;">
+        <div class="kpi-tile flat"><div class="stripe"></div><div class="label">McKinley Concessions</div><div class="value">${DATA.concessions.mckinley}%</div><div class="sub">T12 actual, concessions ÷ GPR</div></div>
+        <div class="kpi-tile flat"><div class="stripe"></div><div class="label">Comp-Set Avg Concessions</div><div class="value">${DATA.concessions.compAvg}%</div><div class="sub">HelloData.ai, ${DATA.concessions.compN} of ${DATA.marketComps.length-1} comps reporting</div></div>
+      </div>
+    </section>
+  `;
+
+  const grid = document.getElementById('comp-grid');
+  mc.forEach(c=>{
+    grid.innerHTML += `<div class="comp-card ${c.subject?'subject':''}">
+      <div class="name">${c.name}${c.subject?' <span style="color:var(--navy);font-size:10px;">SUBJECT</span>':''}</div>
+      <div class="sub">${c.avgSf} sf avg · ${c.dom} days on mkt</div>
+      <div class="stat">${fmt$(c.avgRent)} <span style="color:var(--ink-soft);font-weight:400;">(${fmt$1(c.avgPsf)}/sf)</span></div>
+    </div>`;
+  });
+
+  const ranked = [...mc].sort((a,b)=>b.avgRent-a.avgRent);
+  document.getElementById('comp-rank').innerHTML = hBarChart({data: ranked.map(c=>({label:c.name, value:c.avgRent, subject:c.subject, marker:`(${fmt$1(c.avgPsf)}/sf)`})), width:640});
+  wireTooltips(document.getElementById('comp-rank'), i=>{
+    const c = ranked[i];
+    return `<div class="t-title">${c.name}</div><div class="t-row">${fmt$(c.avgRent)} · ${fmt$1(c.avgPsf)}/sf · ${c.avgSf} sf</div>`;
+  });
+
+  const bedRow = document.getElementById('comp-scatter-row');
+  Object.entries(DATA.marketByBedScatter).forEach(([bed, comps])=>{
+    const pts = comps.map(c=>({x:c.avgSf, y:c.avgRent, subject:c.subject, label:c.name, active:c.active, leased:c.leased}));
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-shell';
+    wrap.innerHTML = `<h3 class="sub-title">${bed} <small style="font-weight:400;color:var(--ink-soft);">n=${pts.length} availabilities</small></h3><div class="bed-scatter"></div>`;
+    bedRow.appendChild(wrap);
+    const holder = wrap.querySelector('.bed-scatter');
+    holder.innerHTML = scatterChart({points: pts, xFmt: v=>Math.round(v)+' sf', width:340, height:300});
+    wireTooltips(holder, i=>{
+      const p = pts[i];
+      return `<div class="t-title">${p.label}</div><div class="t-row">${Math.round(p.x)} sf · ${fmt$(p.y)}</div><div class="t-row">${p.active} active · ${p.leased} leased</div>`;
+    });
+  });
+
+  const bt = document.getElementById('bed-table');
+  bt.innerHTML = `<thead><tr><th>Bedroom Type</th><th>McKinley Avg SF</th><th>McKinley Avg Rent</th><th>Comp Avg SF</th><th>Comp Avg Rent</th><th>Rent Premium</th></tr></thead>`;
+  const tb = document.createElement('tbody');
+  Object.entries(mb).forEach(([bed,v])=>{
+    const prem = (v.McKinley.avgRent - v.compAvg.avgRent)/v.compAvg.avgRent*100;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${bed}</td><td>${v.McKinley.avgSf}</td><td>${fmt$(v.McKinley.avgRent)}</td><td>${v.compAvg.avgSf}</td><td>${fmt$(v.compAvg.avgRent)}</td><td>${prem>0?'+':''}${prem.toFixed(1)}%</td>`;
+    tb.appendChild(tr);
+  });
+  bt.appendChild(tb);
+}
+
+/* ============================= INIT ============================= */
+initTabs();
+renderOverview();
+renderLeasing();
+renderRentRoll();
+renderFinancials();
+renderMarket();
+window.addEventListener('mousemove', evt=>{ if(tooltipEl && tooltipEl.classList.contains('show')) positionTip(evt); });
+</script>
