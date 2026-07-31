@@ -1244,10 +1244,10 @@ function renderMarket(){
 
   const bedRow = document.getElementById('comp-scatter-row');
   Object.entries(DATA.marketByBedScatter).forEach(([bed, comps])=>{
-    const pts = comps.map(c=>({x:c.avgSf, y:c.avgRent, subject:c.subject, label:c.name, active:c.active, leased:c.leased}));
+    const pts = comps.filter(c=>c.active>0).map(c=>({x:c.avgSf, y:c.avgRent, subject:c.subject, label:c.name, active:c.active, leased:c.leased}));
     const wrap = document.createElement('div');
     wrap.className = 'chart-shell';
-    wrap.innerHTML = `<h3 class="sub-title">${bed} <small style="font-weight:400;color:var(--ink-soft);">n=${pts.length} availabilities</small></h3><div class="bed-scatter"></div>`;
+    wrap.innerHTML = `<h3 class="sub-title">${bed} <small style="font-weight:400;color:var(--ink-soft);">n=${pts.length} active listings</small></h3><div class="bed-scatter"></div>`;
     bedRow.appendChild(wrap);
     const holder = wrap.querySelector('.bed-scatter');
     holder.innerHTML = scatterChart({points: pts, xFmt: v=>Math.round(v)+' sf', width:340, height:300});
