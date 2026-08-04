@@ -248,6 +248,7 @@ const DATA = {
   },
   delinquency: { units:4, totalBalance:67, gpr:200600, pctOfGPR:0.03, target:2.0 },
   lossToLease: -6.9,
+  concessionsT3: { pct: 5.3, months: 'Feb–Apr 2026' },
   financials: {
     months: ['May ’25','Jun ’25','Jul ’25','Aug ’25','Sep ’25','Oct ’25','Nov ’25','Dec ’25','Jan ’26','Feb ’26','Mar ’26','Apr ’26'],
     totalIncome: [29585,173815,183126,193026,212997,189553,182565,136837,174414,165982,187163,203053],
@@ -257,8 +258,7 @@ const DATA = {
     t12TotalIncome: 2032115,
     t12NOI: 909843,
     noiMarginPct: 44.8,
-    opexRatioPct: 55.2,
-    targets: {noiMarginLow:55, noiMarginHigh:60, opexRatioMax:40}
+    targets: {noiMarginLow:55, noiMarginHigh:60}
   },
   expenseComparison: {
     periods: ['FY2022','FY2023','FY2024','T12 @ Acquisition','Current T12','Astor at Osborn'],
@@ -749,9 +749,11 @@ function renderOverview(){
     { label:'Physical Occupancy', value: fmtPct(occ.physicalOccPct), sub:`Target ≥${occ.targetPhysical}% · ${DATA.property.inService} in-service units`, status: statusOf(occ.physicalOccPct, occ.targetPhysical, {warnBand:0.04}) },
     { label:'Leased %', value: fmtPct(occ.leasedPct), sub:'Occupied + vacant-rented', status:'good' },
     { label:'T12 NOI Margin', value: fmtPct(f.noiMarginPct), sub:`Target ${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}%`, status: statusOf(f.noiMarginPct, f.targets.noiMarginLow, {warnBand:0.15}) },
-    { label:'Operating Expense Ratio', value: fmtPct(f.opexRatioPct), sub:`Target <${f.targets.opexRatioMax}% of EGI`, status: statusOf(f.opexRatioPct, f.targets.opexRatioMax, {higherIsBetter:false, warnBand:0.2}) },
     { label:'Delinquency', value: fmtPct(del.pctOfGPR,2), sub:`Target <${del.target}% of GPR · ${del.units} units / ${fmt$(del.totalBalance)}`, status:'good' },
-    { label:'Loss to Lease', value: fmtPct(DATA.lossToLease), sub:'Actual rent vs. market, occupied units', status:'flat' }
+    { label:'Loss to Lease', value: fmtPct(DATA.lossToLease), sub:'Actual rent vs. market, occupied units', status:'flat' },
+    { label:'T30 New Lease Trade-Out', value: fmtPct(DATA.tradeOuts.newLeases[0]), sub:'Trailing month, vs. market', status:'flat' },
+    { label:'T30 Renewal Trade-Out', value: fmtPct(DATA.tradeOuts.renewals[0]), sub:'Trailing month, vs. market', status:'flat' },
+    { label:'T3 Concessions', value: fmtPct(DATA.concessionsT3.pct), sub:`${DATA.concessionsT3.months}, concessions ÷ Gross Potential Rent`, status:'flat' }
   ];
 
   el.innerHTML = `
