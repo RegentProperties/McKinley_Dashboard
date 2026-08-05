@@ -749,7 +749,7 @@ function renderOverview(){
     { label:'Physical Occupancy', value: fmtPct(occ.physicalOccPct), sub:`Target ≥${occ.targetPhysical}% · ${DATA.property.inService} in-service units`, status: statusOf(occ.physicalOccPct, occ.targetPhysical, {warnBand:0.04}) },
     { label:'Leased %', value: fmtPct(occ.leasedPct), sub:'Occupied + vacant-rented', status:'good' },
     { label:'T12 NOI Margin', value: fmtPct(f.noiMarginPct), sub:`Target ${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}%`, status: statusOf(f.noiMarginPct, f.targets.noiMarginLow, {warnBand:0.15}) },
-    { label:'Delinquency', value: fmtPct(del.pctOfGPR,2), sub:`Target <${del.target}% of GPR · ${del.units} units / ${fmt$(del.totalBalance)}`, status:'good' },
+    { label:'Delinquency', value: fmtPct(del.pctOfGPR), sub:`Target <${del.target}% of GPR · ${del.units} units / ${fmt$(del.totalBalance)}`, status:'good' },
     { label:'Loss to Lease', value: fmtPct(DATA.lossToLease), sub:'Actual rent vs. market, occupied units', status:'flat' },
     { label:'T30 New Lease Trade-Out', value: fmtPct(DATA.tradeOuts.newLeases[0]), sub:'Trailing month, vs. market', status:'flat' },
     { label:'T30 Renewal Trade-Out', value: fmtPct(DATA.tradeOuts.renewals[0]), sub:'Trailing month, vs. market', status:'flat' },
