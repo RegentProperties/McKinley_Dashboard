@@ -238,6 +238,8 @@ const DATA = {
     ],
     physicalOccPct: 92.5,
     leasedPct: 96.3,
+    leasedPctAdjusted: 94.4,
+    noticeWithin30d: 2,
     trend: [
       {month:'Apr ’26', occPct:94.4, leasedPct:95.3},
       {month:'May ’26', occPct:94.4, leasedPct:96.3},
@@ -747,7 +749,7 @@ function renderOverview(){
 
   const tiles = [
     { label:'Physical Occupancy', value: fmtPct(occ.physicalOccPct), sub:`Target ≥${occ.targetPhysical}% · ${DATA.property.inService} in-service units`, status: statusOf(occ.physicalOccPct, occ.targetPhysical, {warnBand:0.04}) },
-    { label:'Leased %', value: fmtPct(occ.leasedPct), sub:'Occupied + vacant-rented', status:'good' },
+    { label:'Leased %', value: fmtPct(occ.leasedPctAdjusted), sub:`Occupied + vacant-rented, less ${occ.noticeWithin30d} on notice moving within 30d`, status:'good' },
     { label:'T12 NOI Margin', value: fmtPct(f.noiMarginPct), sub:`Target ${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}%`, status: statusOf(f.noiMarginPct, f.targets.noiMarginLow, {warnBand:0.15}) },
     { label:'Delinquency', value: fmtPct(del.pctOfGPR), sub:`Target <${del.target}% of GPR · ${del.units} units / ${fmt$(del.totalBalance)}`, status:'good' },
     { label:'Loss to Lease', value: fmtPct(DATA.lossToLease), sub:'Actual rent vs. market, occupied units', status:'flat' },
