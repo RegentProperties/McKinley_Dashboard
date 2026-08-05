@@ -237,13 +237,12 @@ const DATA = {
       {label:'Vacant — Unrented Ready', value:4, kind:'vac'}
     ],
     physicalOccPct: 92.5,
-    leasedPct: 96.3,
     leasedPctAdjusted: 94.4,
     noticeWithin30d: 2,
     trend: [
-      {month:'Apr ’26', occPct:94.4, leasedPct:95.3},
-      {month:'May ’26', occPct:94.4, leasedPct:96.3},
-      {month:'Jun ’26', occPct:92.5, leasedPct:96.3}
+      {month:'Apr ’26', occPct:94.4, leasedPct:90.7},
+      {month:'May ’26', occPct:94.4, leasedPct:93.5},
+      {month:'Jun ’26', occPct:92.5, leasedPct:94.4}
     ],
     targetPhysical: 95,
     targetEconomic: 90
@@ -810,7 +809,7 @@ function renderLeasing(){
 
   el.innerHTML = `
     <section>
-      <h2 class="section-title">Occupancy Trend <small>physical vs. leased, trailing 3 months</small></h2>
+      <h2 class="section-title">Occupancy Trend <small>physical vs. leased (less notice-to-vacate within 30d), trailing 3 months</small></h2>
       <div class="chart-shell"><div id="occ-trend"></div></div>
     </section>
     <section>
