@@ -171,6 +171,13 @@
   table.stats tbody tr.subtotal-row.noncontrollable{background:var(--amber-bg);}
   table.stats tbody tr.subtotal-row.noncontrollable td:first-child{color:var(--amber);}
   table.stats tbody tr:hover td{background:var(--line-soft);}
+  table.stats tr.cat-row{cursor:pointer;}
+  table.stats tr.cat-row:hover td{background:var(--line-soft);}
+  table.stats tr.cat-row .disclosure{display:inline-block;width:14px;color:var(--ink-soft);font-size:10px;}
+  table.stats tr.cat-row.expanded td:first-child{color:var(--navy-deep);font-weight:600;}
+  table.stats tr.gl-detail td{font-size:12px;color:var(--ink-soft);background:var(--line-soft);}
+  table.stats tr.gl-detail td:first-child{padding-left:34px;font-style:italic;}
+  table.stats tr.gl-detail:hover td{background:var(--line-soft);}
   .table-scroll{overflow-x:auto;}
   .badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;letter-spacing:.02em;}
   .badge.good{background:var(--good-bg);color:var(--good);}
@@ -277,6 +284,201 @@ const DATA = {
       {key:'insurance', label:'Insurance', group:'noncontrollable', color:'#A9682B', values:[531,666,804,833,684,583]},
       {key:'retax', label:'Real Estate Tax', group:'noncontrollable', color:'#7A4A1F', values:[2508,2597,2621,2674,2605,2355]}
     ]
+  },
+  expenseGLDetail: {
+    payroll: {
+      mckinley: [
+        {name:'Manager - Salary', values:[625, 563, 453, 451, 1331]},
+        {name:'Manager - Bonus', values:[207, 147, 131, 114, 0]},
+        {name:'Assistant Manager - Salary', values:[16, 0, 0, 0, 0]},
+        {name:'Assistant Manager - Bonus', values:[8, 0, 0, 0, 0]},
+        {name:'Leasing Agent - Salary', values:[117, 171, 165, 215, 76]},
+        {name:'Leasing Agent - Bonus', values:[15, 63, 41, 58, 24]},
+        {name:'Maintenance Supervisor - Salary', values:[454, 487, 509, 507, 9]},
+        {name:'Maintenance Technician - Salary', values:[43, 73, 84, 100, 7]},
+        {name:'Maintenance - Bonus', values:[78, 58, 67, 69, 0]},
+        {name:'Employee Apartment Concession', values:[0, 18, 40, 23, 15]},
+        {name:'Uniforms', values:[6, 6, 6, 6, 0]},
+        {name:'FICA', values:[116, 0, 112, 118, 0]},
+        {name:'Health/401K', values:[149, 0, 123, 149, 0]},
+        {name:"Worker's Compensation", values:[25, 0, 15, 14, 0]},
+        {name:'Other Payroll Burden', values:[51, 295, 61, 61, 0]},
+        {name:'Temporary Help - Office', values:[0, 0, 0, 3, 198]},
+        {name:'Temporary Help - Maintenance Labor', values:[0, 0, 0, 0, 339]},
+        {name:'Courtesy Patrol Apartment', values:[0, 0, 0, 0, 125]}
+      ],
+      astor: [
+        {name:'Manager', value:316}, {name:'Assistant Manager', value:1},
+        {name:'Leasing Consultants', value:340}, {name:'Commissions', value:273},
+        {name:'Admin FICA', value:65}, {name:'Admin FUTA', value:1}, {name:'Admin SUTA', value:1},
+        {name:'Admin Workmans Comp', value:5}, {name:'Admin Uniforms', value:12}, {name:'ION Services', value:61},
+        {name:'Maint Supervisor', value:440}, {name:'Assistant Maintenance', value:265},
+        {name:'Maint FICA', value:53}, {name:'Maint FUTA', value:0}, {name:'Maint SUTA', value:1},
+        {name:'Maint Workmans Comp', value:4}, {name:'Maint Uniforms', value:5},
+        {name:'Miscellaneous', value:13}, {name:'PTO/PST Expense', value:0}, {name:'Benefits Insurance', value:102}
+      ]
+    },
+    advertising: {
+      mckinley: [
+        {name:'Signage / Brochures', values:[4, 3, 0, 1, 4]},
+        {name:'Client Promotions', values:[9, 3, 2, 6, 0]},
+        {name:'Internet Advertising', values:[354, 395, 479, 447, 273]},
+        {name:'Locator Fees', values:[13, 31, 21, 37, 0]},
+        {name:'Model Expense', values:[9, 11, 14, 14, 0]},
+        {name:'Other Advertising/Outreach', values:[39, 29, 6, 6, 0]},
+        {name:'Resident Referral Fee', values:[2, 5, 2, 6, 0]},
+        {name:'Resident Retention Expense', values:[9, 5, 13, 18, 0]}
+      ],
+      astor: [
+        {name:'Resident Experience', value:66}, {name:'Resident Hospitality', value:102},
+        {name:'Listings Management', value:5}, {name:'Brochures/Folders/Bus Cards', value:4},
+        {name:'Internet Advertising', value:433}, {name:'Locator Services', value:9},
+        {name:'Referral Fees', value:5}, {name:'Dwell CRM', value:21}, {name:'Yelp', value:5},
+        {name:'Radio & TV', value:4}, {name:'Resident Activities', value:2},
+        {name:'Resident Retention', value:39}, {name:'Call Tracking', value:18}
+      ]
+    },
+    ga: {
+      mckinley: [
+        {name:'Bank Charges', values:[0, 0, 1, 1, 0]},
+        {name:'ACH Fees', values:[12, 15, 12, 13, 0]},
+        {name:'Courier/Express Mail/Postage', values:[1, 1, 2, 1, 6]},
+        {name:'Courtesy Patrol/Alarm Monitoring', values:[86, 99, 100, 100, 71]},
+        {name:'Eviction / Legal Fees Collected (-)', values:[-1, -10, -15, -14, 0]},
+        {name:'Eviction / Legal Fees', values:[0, 4, 10, 12, 69]},
+        {name:'IT Support/Computer Repairs', values:[45, 36, 32, 34, 31]},
+        {name:'Leased Equipment/Space', values:[90, 16, 57, 65, 0]},
+        {name:'Licenses/Permits/Dues/Subscriptions', values:[193, 213, 153, 148, 108]},
+        {name:'Office Supplies/Equipment/Repairs', values:[-1, 3, 2, 3, 47]},
+        {name:'Recruiting Expense', values:[27, 25, 24, 19, 0]},
+        {name:'Social/Entertainment', values:[31, 18, 14, 19, 73]},
+        {name:'Communications (Tele/Ans Svc/ISP/Pager)', values:[113, 115, 121, 121, 66]},
+        {name:'Training - All', values:[14, 11, 8, 13, 0]},
+        {name:'Printing', values:[0, 0, 2, 2, 2]},
+        {name:'Technology Fee Expense', values:[0, 71, 84, 93, 176]},
+        {name:'Late Fees', values:[0, 0, 1, 3, 1]},
+        {name:'Mileage/Travel', values:[0, 0, 0, 0, 75]},
+        {name:'Professional Fees/Compliance', values:[0, 0, 0, 0, 132]},
+        {name:'Resident Screening', values:[0, 0, 0, 0, 1]}
+      ],
+      astor: [
+        {name:'Bank Charges', value:20}, {name:'Computer Supply/Service', value:112},
+        {name:'Dues & Subscriptions', value:173}, {name:'Employee Activities', value:25},
+        {name:'Risk Release Building and Facilities', value:11}, {name:'Employee Training', value:27},
+        {name:'Guest Unit Expenses', value:37}, {name:'Legal - Evictions', value:7},
+        {name:'Licenses & Permits', value:10}, {name:'Office Equip Rental/Repair', value:4},
+        {name:'Office Telephone', value:33}, {name:'Other Administrative', value:0},
+        {name:'Office Supplies', value:6}, {name:'Package Locker', value:2},
+        {name:'Postage/Courier/Overnight', value:0}, {name:'Resident Screening', value:36},
+        {name:'Shopping Reports', value:4}, {name:'Alarm Service', value:3},
+        {name:'Security Service', value:231}, {name:'Pool Licenses', value:1}
+      ]
+    },
+    utilities: {
+      mckinley: [
+        {name:'Electric - Common', values:[360, 405, 456, 469, 420]},
+        {name:'Vacant Unit Utilities', values:[87, 20, 51, 58, 86]},
+        {name:'Gas - Common', values:[42, 59, 43, 33, 49]},
+        {name:'Water/Sewer', values:[295, 356, 301, 321, 349]},
+        {name:'Utility Billing/Transfer/Audit Fees', values:[48, 46, 44, 44, 0]},
+        {name:'Utility RUBS Billing Charges', values:[0, 0, 0, 0, 7]}
+      ],
+      astor: [
+        {name:'Common Area Electric', value:226}, {name:'Model Electric', value:3},
+        {name:'Turnover Electric', value:34}, {name:'Common Area Water', value:250},
+        {name:'Sewer', value:84}, {name:'Utility Billing Fees', value:64},
+        {name:'Common Area Gas', value:26}, {name:'Cable TV/Bulk Internet', value:15}
+      ]
+    },
+    contracted: {
+      mckinley: [
+        {name:'Trash Removal', values:[189, 260, 193, 232, 241]},
+        {name:'Elevators', values:[116, 120, 165, 171, 107]},
+        {name:'Exterminating', values:[18, 8, 3, 6, 20]},
+        {name:'Fire Alarm Monitor/Fire Suppl. Equipment', values:[37, 33, 45, 41, 104]},
+        {name:'Landscaping - Contract', values:[61, 61, 61, 61, 70]},
+        {name:'Pools/Spas/Fountains', values:[11, 16, 41, 53, 227]},
+        {name:'Contract Cleaning', values:[37, 75, 73, 76, 484]}
+      ],
+      astor: [
+        {name:'Janitorial Contract', value:163}, {name:'Landscape Service', value:107},
+        {name:'Elevator Contract', value:58}, {name:'Extinguisher/Fire Svcs', value:47},
+        {name:'Pest Control Service', value:48}, {name:'Pool Supply/Repair', value:44},
+        {name:'Waste Removal', value:119}, {name:'Valet Waste', value:146}
+      ]
+    },
+    maintenance: {
+      mckinley: [
+        {name:'Carport/Garage', values:[8, 14, 24, 24, 12]},
+        {name:'Common Area Exterior Repairs/Maintenance', values:[42, 29, 24, 27, 83]},
+        {name:'Common Area Interior Repairs/Maintenance', values:[95, 127, 112, 116, 79]},
+        {name:'Janitorial Supplies', values:[7, 11, 9, 10, 66]},
+        {name:'Appliance Repair', values:[6, 0, 27, 30, 0]},
+        {name:'Windows/Doors/Screens', values:[41, 13, 57, 56, 0]},
+        {name:'Electrical/Lighting', values:[15, 10, 11, 13, 26]},
+        {name:'Equipment/Hardware', values:[3, 4, 2, 1, 17]},
+        {name:'HVAC', values:[29, 21, 28, 31, 163]},
+        {name:'Interior Repairs - Unit', values:[11, 12, 7, 7, 11]},
+        {name:'Keys/Locks', values:[1, 12, 16, 18, 92]},
+        {name:'Landscaping - Materials/Repairs', values:[5, 15, 54, 54, 1]},
+        {name:'Plumbing', values:[9, 8, 17, 21, 9]},
+        {name:'Blinds', values:[0, 2, 0, 0, 0]},
+        {name:'Appliance Repair/Replacement', values:[0, 26, 0, 0, 46]},
+        {name:'Fencing & Gate Repair Maintenance', values:[0, 0, 0, 0, 0]},
+        {name:'Counter Repair/Resurface', values:[0, 0, 5, 5, 0]},
+        {name:'Flooring Repair', values:[0, 0, 2, 2, 18]},
+        {name:'Elevators - Repairs', values:[0, 0, 0, 0, 23]},
+        {name:'Pool Supplies & Repairs', values:[0, 0, 0, 0, 2]},
+        {name:'Roof Repair', values:[0, 0, 0, 0, 32]},
+        {name:'Water Damage/Extraction/Disaster Clean Up', values:[0, 0, 0, 0, 13]}
+      ],
+      astor: [
+        {name:'Landscape Irrig Supply/Repair', value:8}, {name:'Landscape Seas Supply/Service', value:33},
+        {name:'Landscape Supplies', value:0}, {name:'Parking Lot Service', value:21},
+        {name:'Access Gate Supply/Repair', value:143}, {name:'Appliance Supply/Repair', value:113},
+        {name:'Carpet Clean/Repair', value:30}, {name:'Cleaning Supply/Service', value:59},
+        {name:'Drywall Supply/Repair', value:27}, {name:'Electrical Supply/Repair', value:20},
+        {name:'Equipment Supply/Repair', value:23}, {name:'Glass/Screen Supply/Repair', value:11},
+        {name:'Hardware Supplies', value:41}, {name:'HVAC Supply/Repair', value:52},
+        {name:'Key/Lock Supply/Repair', value:27}, {name:'Paint Supply/Repair', value:1},
+        {name:'Park Lot/Carport Supply/Repair', value:29}, {name:'Pest Control Supply', value:0},
+        {name:'Plumbing Supply/Repair', value:49}, {name:'Recreational Supply/Repair', value:41},
+        {name:'Elevator Supply/Repair', value:5}
+      ]
+    },
+    turnover: {
+      mckinley: [
+        {name:'Carpet Cleaning (turn/occ)', values:[30, 57, 35, 38, 134]},
+        {name:'Turnover - Painting Supplies', values:[10, 0, 12, 16, 0]},
+        {name:'Turnover - Painting Contract', values:[0, 2, 0, 2, 148]},
+        {name:'Misc Turn Supplies/Replacements', values:[0, 12, 0, 0, 64]},
+        {name:'Carpet Replacements', values:[0, 0, 0, 0, 57]},
+        {name:'Turn Cleaning', values:[0, 0, 0, 0, 36]}
+      ],
+      astor: [
+        {name:'T/O Cleaning Supply', value:8}, {name:'T/O Contract Cleaning', value:79},
+        {name:'T/O Paint Supply', value:28}, {name:'T/O Contract Painting', value:10},
+        {name:'T/O Carpet Clean/Repair', value:32}, {name:'T/O Resurfacing', value:48},
+        {name:'T/O Drywall', value:4}, {name:'T/O Tile-Vinyl Clean/Repair', value:13},
+        {name:'T/O Window Supply', value:12}
+      ]
+    },
+    mgmtfee: {
+      mckinley: [{name:'Management Fees', values:[811, 798, 796, 777, 548]}],
+      astor: [{name:'Management Fee', value:541}]
+    },
+    insurance: {
+      mckinley: [{name:'Property/Liability Insurance', values:[531, 666, 804, 833, 684]}],
+      astor: [{name:'Property and Casualty Insurance', value:583}]
+    },
+    retax: {
+      mckinley: [
+        {name:'Real Estate Taxes', values:[2500, 2592, 2618, 2663, 2605]},
+        {name:'Sales/Use Tax', values:[4, 5, 0, 0, 0]},
+        {name:'Real Estate Tax Consultant Fee', values:[4, 0, 4, 11, 0]}
+      ],
+      astor: [{name:'Real Property Taxes', value:2355}]
+    }
   },
   tradeOuts: {
     asOf: '7/13/2026',
@@ -1164,16 +1366,46 @@ function renderFinancials(){
   const tbody = document.createElement('tbody');
   function catRow(c){
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${c.label}</td>${c.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-    return tr;
+    tr.className = 'cat-row';
+    tr.dataset.cat = c.key;
+    tr.innerHTML = `<td><span class="disclosure">▸</span>${c.label}</td>${c.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
+    tr.addEventListener('click', ()=>{
+      const expanding = !tr.classList.contains('expanded');
+      tr.classList.toggle('expanded');
+      tr.querySelector('.disclosure').textContent = expanding ? '▾' : '▸';
+      tbody.querySelectorAll(`tr.gl-detail[data-cat="${c.key}"]`).forEach(dr=>{
+        dr.style.display = expanding ? '' : 'none';
+      });
+    });
+    const detailRows = [];
+    const gl = DATA.expenseGLDetail[c.key];
+    if (gl) {
+      gl.mckinley.forEach(a=>{
+        const dr = document.createElement('tr');
+        dr.className = 'gl-detail';
+        dr.dataset.cat = c.key;
+        dr.style.display = 'none';
+        dr.innerHTML = `<td>${a.name}</td>${a.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}<td>—</td>`;
+        detailRows.push(dr);
+      });
+      gl.astor.forEach(a=>{
+        const dr = document.createElement('tr');
+        dr.className = 'gl-detail';
+        dr.dataset.cat = c.key;
+        dr.style.display = 'none';
+        dr.innerHTML = `<td>${a.name}</td>${Array(5).fill('<td>—</td>').join('')}<td>${fmt$(a.value)}</td>`;
+        detailRows.push(dr);
+      });
+    }
+    return [tr, ...detailRows];
   }
-  controllableCats.forEach(c=> tbody.appendChild(catRow(c)));
+  controllableCats.forEach(c=> catRow(c).forEach(r=> tbody.appendChild(r)));
   const ctrlSubtotal = ec.periods.map((_,gi)=> controllableCats.reduce((a,c)=>a+c.values[gi],0));
   const ctrlRow = document.createElement('tr');
   ctrlRow.className='subtotal-row controllable';
   ctrlRow.innerHTML = `<td>Controllable Subtotal</td>${ctrlSubtotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
   tbody.appendChild(ctrlRow);
-  noncontrollableCats.forEach(c=> tbody.appendChild(catRow(c)));
+  noncontrollableCats.forEach(c=> catRow(c).forEach(r=> tbody.appendChild(r)));
   const nonCtrlSubtotal = ec.periods.map((_,gi)=> noncontrollableCats.reduce((a,c)=>a+c.values[gi],0));
   const nonCtrlRow = document.createElement('tr');
   nonCtrlRow.className='subtotal-row noncontrollable';
