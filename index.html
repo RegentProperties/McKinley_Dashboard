@@ -929,7 +929,7 @@ function renderOverview(){
 /* ============================= RENDER: LEASING & OCCUPANCY ============================= */
 function renderLeasing(){
   const el = document.getElementById('panel-leasing');
-  const occ = DATA.occupancy, lf = DATA.leasingFunnel, exp = DATA.leaseExpiration;
+  const occ = DATA.occupancy, lf = DATA.leasingFunnel;
 
   el.innerHTML = `
     <section>
@@ -968,14 +968,6 @@ function renderLeasing(){
           <div class="kpi-tile flat"><div class="stripe"></div><div class="label">${p} Retention</div><div class="value">${DATA.tradeOuts.retention[i].toFixed(1)}%</div><div class="sub">SOP target ≥55%</div></div>
         `).join('')}
       </div>
-    </section>
-    <section>
-      <h2 class="section-title">Lease Expiration Schedule <small>by month, from 6/30/2026 rent roll</small></h2>
-      <div class="chart-shell"><div id="exp-chart"></div></div>
-    </section>
-    <section>
-      <h2 class="section-title">Notice Units <small>occupied, notice to vacate given</small></h2>
-      <div class="unit-grid" id="notice-units"></div>
     </section>
   `;
 
@@ -1017,30 +1009,42 @@ function renderLeasing(){
     el.addEventListener('mouseleave', hideTip);
   });
 
-  document.getElementById('exp-chart').innerHTML = barChart({
-    data: exp.map(e=>({label:e.month, value:e.count})),
-    valueFmt: v=>Math.round(v).toString(), width:900, height:220
-  }).svg;
-
-  const nu = document.getElementById('notice-units');
-  const allNotice = [
-    ...DATA.vacantUnits.noticeUnrented.map(u=>({...u, tag:'Unrented'})),
-    ...DATA.vacantUnits.noticeRented.map(u=>({...u, tag:'Rented'}))
-  ];
-  allNotice.forEach(u=>{
-    const card = document.createElement('div');
-    card.className = 'unit-card notice';
-    card.innerHTML = `<div class="u-no">Unit ${u.unit} <span class="badge ${u.tag==='Rented'?'good':'warn'}">${u.tag}</span></div>
-      <div class="u-type">${u.type} · ${u.sqft} sf</div>
-      <div class="u-rent">${fmt$(u.rent)} <span style="color:var(--ink-soft);font-weight:400;">/ mkt ${fmt$(u.marketRent)}</span></div>
-      ${u.moveOut?`<div class="u-extra">Move-out: ${u.moveOut}</div>`:''}`;
-    nu.appendChild(card);
-  });
 }
 function funnelKpiCard(label, value, target, isCount){
   const pct = isCount ? value : value.toFixed(1)+'%';
   const status = (target===null) ? 'flat' : statusOf(value, target, {warnBand:0.25});
   return `<div class="kpi-tile ${status}"><div class="stripe"></div><div class="label">${label}</div><div class="value">${pct}</div>${target!==null?`<div class="sub">SOP industry avg: ${target}%</div>`:'<div class="sub">Dec ’25 – May ’26</div>'}</div>`;
+}
+/* Single-line trend chart with optional target line */
+function lineChart({labels, series, color='var(--navy)', target=null, targetLabel='', width=900, height=240, valueFmt=v=>v.toFixed(0)+'%'}){
+  const marginL=52, marginR=20, marginT=18, marginB=32;
+  const innerW=width-marginL-marginR, innerH=height-marginT-marginB;
+  const all = target!==null ? [...series, target] : series;
+  const minV = Math.min(...all)-1, maxV = Math.max(...all)+1;
+  const X = i => marginL + innerW*(labels.length===1?0.5:i/(labels.length-1));
+  const Y = v => marginT + innerH - (v-minV)/(maxV-minV)*innerH;
+  let ticks='';
+  for(let i=0;i<=4;i++){
+    const v = minV + (maxV-minV)*i/4;
+    ticks += `<line class="gridline" x1="${marginL}" x2="${width-marginR}" y1="${Y(v)}" y2="${Y(v)}"/>`;
+    ticks += `<text class="tick-label" x="${marginL-8}" y="${Y(v)+3}" text-anchor="end">${valueFmt(v)}</text>`;
+  }
+  const path = series.map((v,i)=> (i===0?'M':'L')+X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  const dots = series.map((v,i)=>`<circle class="pt" data-i="${i}" cx="${X(i)}" cy="${Y(v)}" r="3.6" fill="${color}" stroke="#fff" stroke-width="1"/>`).join('');
+  let xlabels='';
+  labels.forEach((l,i)=> xlabels += `<text class="tick-label" x="${X(i)}" y="${height-marginB+16}" text-anchor="middle">${l}</text>`);
+  let targetSvg='';
+  if (target!==null){
+    targetSvg = `<line class="target-line" x1="${marginL}" x2="${width-marginR}" y1="${Y(target)}" y2="${Y(target)}"/>
+    <text class="tick-label" x="${width-marginR}" y="${Y(target)-4}" text-anchor="end" fill="var(--bad)">${targetLabel}</text>`;
+  }
+  return `<svg class="plot" viewBox="0 0 ${width} ${height}">
+    <g class="axis">${ticks}</g>
+    ${targetSvg}
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.2"/>
+    ${dots}
+    <g>${xlabels}</g>
+  </svg>`;
 }
 function dualLineChart({labels, seriesA, labelA, seriesB, labelB, target}){
   const width=900, height=240, marginL=52, marginR=20, marginT=18, marginB=32;
@@ -1115,7 +1119,7 @@ function groupedBarChart({labels, series, width=900, height=260, valueFmt=v=>Mat
 /* ============================= RENDER: RENT ROLL ============================= */
 function renderRentRoll(){
   const el = document.getElementById('panel-rentroll');
-  const um = DATA.unitMix, fp = DATA.floorplans, vu = DATA.vacantUnits;
+  const um = DATA.unitMix, fp = DATA.floorplans;
 
   el.innerHTML = `
     <section>
@@ -1130,13 +1134,6 @@ function renderRentRoll(){
           <div class="li"><span class="sw" style="background:var(--navy)"></span>In-place rent</div>
         </div>
       </div>
-    </section>
-    <section>
-      <h2 class="section-title">Vacant Units <small>ready vs. not ready for move-in</small></h2>
-      <h3 class="sub-title">Ready / Rented-Ready</h3>
-      <div class="unit-grid" id="vac-ready"></div>
-      <h3 class="sub-title" style="margin-top:16px;">Not Ready</h3>
-      <div class="unit-grid" id="vac-notready"></div>
     </section>
   `;
 
@@ -1168,16 +1165,6 @@ function renderRentRoll(){
     return `<div class="t-title">${p.label}</div><div class="t-row">${p.x} sf · ${fmt$(p.y)}</div>`;
   });
 
-  function unitCard(u, cls, badgeText, badgeCls){
-    return `<div class="unit-card ${cls}"><div class="u-no">Unit ${u.unit} ${badgeText?`<span class="badge ${badgeCls}">${badgeText}</span>`:''}</div>
-      <div class="u-type">${u.type} · ${u.sqft} sf</div>
-      <div class="u-rent">${fmt$(u.marketRent)}<span style="color:var(--ink-soft);font-weight:400;"> asking</span></div></div>`;
-  }
-  const ready = document.getElementById('vac-ready');
-  vu.ready.forEach(u=> ready.innerHTML += unitCard(u,'ready','Unrented','warn'));
-  vu.rentedReady.forEach(u=> ready.innerHTML += unitCard(u,'ready','Rented','good'));
-  const notReady = document.getElementById('vac-notready');
-  vu.notReady.forEach(u=> notReady.innerHTML += unitCard(u,'notready','Rented','good'));
 }
 
 /* ============================= RENDER: FINANCIALS ============================= */
@@ -1185,165 +1172,72 @@ function renderFinancials(){
   const el = document.getElementById('panel-financials');
   const f = DATA.financials;
 
+  // Roll the trailing-12-month series into 4 rolling 3-month quarters (T12 doesn't start on a
+  // calendar-quarter boundary, so quarters are labeled by their actual month range rather than
+  // forced into a false "Q1/Q2" calendar framing).
+  function toQuarters(months, series){
+    const qLabels = [], qValues = [];
+    for (let i=0;i<months.length;i+=3){
+      const chunk = months.slice(i,i+3);
+      qLabels.push(chunk.length>1 ? `${chunk[0]}–${chunk[chunk.length-1]}` : chunk[0]);
+      qValues.push(series.slice(i,i+3).reduce((a,v)=>a+v,0));
+    }
+    return {qLabels, qValues};
+  }
+  const rev = toQuarters(f.months, f.totalIncome);
+  const noiQ = toQuarters(f.months, f.noi).qValues;
+  const expQ = rev.qValues.map((r,i)=> r - noiQ[i]);
+  const marginQ = rev.qValues.map((r,i)=> r ? (noiQ[i]/r*100) : 0);
+
   el.innerHTML = `
     <section>
-      <h2 class="section-title">Revenue &amp; NOI <small>trailing 12 months, May 2025 – Apr 2026</small></h2>
+      <h2 class="section-title">Revenue &amp; NOI <small>quarterly, trailing 12 months</small></h2>
       <div class="chart-shell"><div id="fin-combo"></div>
         <div class="legend-row">
-          <div class="li"><span class="sw" style="background:var(--comp)"></span>Total Income (bars)</div>
+          <div class="li"><span class="sw" style="background:var(--comp)"></span>Revenue (bars)</div>
           <div class="li"><span class="sw" style="background:var(--navy)"></span>NOI (line)</div>
         </div>
       </div>
     </section>
     <section>
-      <h2 class="section-title">NOI Margin by Month <small>vs. SOP target band 55–60%</small></h2>
+      <h2 class="section-title">Operating Expenses <small>quarterly, trailing 12 months</small></h2>
+      <div class="chart-shell"><div id="fin-expenses-q"></div></div>
+    </section>
+    <section>
+      <h2 class="section-title">NOI Margin <small>quarterly, vs. target band ${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}%</small></h2>
       <div class="chart-shell"><div id="fin-margin"></div></div>
     </section>
     <section>
-      <h2 class="section-title">Expense Breakdown <small>controllable vs. non-controllable, $/unit annualized</small></h2>
-      <h3 class="sub-title">Controllable Expenses <small style="font-weight:400;color:var(--ink-soft);">$/unit annualized</small></h3>
-      <div class="chart-shell"><div id="fin-expense"></div>
-        <div class="legend-row" id="fin-expense-legend"></div>
-      </div>
-      <h3 class="sub-title" style="margin-top:20px;">Full Comparison <small style="font-weight:400;color:var(--ink-soft);">controllable + non-controllable</small></h3>
-      <div class="table-scroll"><table class="stats" id="expense-table"></table></div>
-      <div class="callout" style="margin-top:12px;">
-        <strong>Reading this table:</strong> all figures are $/unit annualized (McKinley on 108 units throughout its history; Astor at Osborn on its own 191 units — a scale comp, not a twin).
-        <ul>
-          <li>† FY2024 and the T12-at-acquisition both exclude a one-time $100,000 property insurance claim (hit Nov 2024, counted in both overlapping periods) so Insurance reflects run-rate, not the one-off loss — with it included, add ~$926/unit to either period.</li>
-        </ul>
-      </div>
-      <div class="callout flag" style="margin-top:12px;">
-        <strong>Streamlining opportunities — Contracted Costs</strong>: at $1,254/unit, Regent's current T12 runs roughly double every seller-era year and the Astor at Osborn benchmark. Two GL accounts explain almost all of the gap:
-        <table>
-          <thead><tr><th>GL Account</th><th>Current T12</th><th>Seller Range (FY22–T12@Acq)</th><th>Astor Benchmark</th><th>Est. Annual Opportunity</th></tr></thead>
-          <tbody>
-            <tr><td>Contract Cleaning (7120)</td><td>$484/unit</td><td>$37–$76/unit</td><td>$163/unit</td><td>$25K–$35K</td></tr>
-            <tr><td>Pools/Spas/Fountains (7108)</td><td>$227/unit</td><td>$11–$53/unit</td><td>$44/unit</td><td>$15K–$20K</td></tr>
-            <tr><td>Fire Alarm Monitor/Fire Suppl. Equipment (7060)</td><td>$104/unit</td><td>$33–$45/unit</td><td>$47/unit</td><td>~$6K</td></tr>
-          </tbody>
-        </table>
-        <ul style="margin-top:10px;">
-          <li>Recommend re-bidding the janitorial and pool service contracts specifically — both sit at 3–7x the seller-era run-rate with no offsetting service-level change on file.</li>
-          <li>Turnover Expense is also elevated ($438/unit vs. $40–$71/unit historically) but that's consistent with the post-acquisition lease-up driving far more unit turns than a stabilized year — worth monitoring as occupancy stabilizes rather than treating as a contract to renegotiate.</li>
-          <li>Payroll is a smaller gap ($2,124/unit vs. $1,806–$1,912 seller-era and $1,959 at Astor, a ~$165–$318/unit premium) — plausibly transition-related (temporary maintenance labor shows $36.6K for the T12); worth revisiting once staffing normalizes, lower priority than the two contracts above.</li>
-        </ul>
-      </div>
-    </section>
-    <section>
-      <h2 class="section-title">ILS Efficacy <small>Dec ’25 – May ’26</small></h2>
-      <div class="chart-row">
-        <div>
-          <h3 class="sub-title">Cost per Lead</h3>
-          <div id="cpl-chart"></div>
-        </div>
-        <div>
-          <h3 class="sub-title">Cost per Lease</h3>
-          <div id="cplease-chart"></div>
-        </div>
-      </div>
+      <h2 class="section-title">Occupancy Trend <small>physical occupancy, most recent 3 months</small></h2>
+      <div class="chart-shell"><div id="fin-occ"></div></div>
+      <div class="callout" style="margin-top:12px;">Occupancy history currently available only covers ${DATA.occupancy.trend.length} months (${DATA.occupancy.trend[0].month}–${DATA.occupancy.trend[DATA.occupancy.trend.length-1].month}), not the same 12-month window as the financials above. A full quarterly occupancy trend will need additional historical rent-roll snapshots.</div>
     </section>
   `;
 
   document.getElementById('fin-combo').innerHTML = comboChart({
-    labels: f.months, bars: f.totalIncome, line: f.noi
+    labels: rev.qLabels, bars: rev.qValues, line: noiQ, width:900, height:280
   });
   wireTooltips(document.getElementById('fin-combo'), i=>{
-    return `<div class="t-title">${f.months[i]}</div><div class="t-row">Income: ${fmt$(f.totalIncome[i])}</div><div class="t-row">NOI: ${fmt$(f.noi[i])}</div>`;
+    return `<div class="t-title">${rev.qLabels[i]}</div><div class="t-row">Revenue: ${fmt$(rev.qValues[i])}</div><div class="t-row">NOI: ${fmt$(noiQ[i])}</div>`;
   });
 
-  const noiMargins = f.totalIncome.map((inc,i)=> inc ? (f.noi[i]/inc*100) : 0);
+  document.getElementById('fin-expenses-q').innerHTML = barChart({
+    data: rev.qLabels.map((lab,i)=>({label:lab, value: expQ[i]})),
+    width:900, height:260
+  }).svg;
+  wireTooltips(document.getElementById('fin-expenses-q'), i=> `<div class="t-title">${rev.qLabels[i]}</div><div class="t-row">Operating expenses: ${fmt$(expQ[i])}</div>`);
+
   const marginBars = barChart({
-    data: f.months.map((m,i)=>({label:m, value: noiMargins[i], color: noiMargins[i]>=f.targets.noiMarginLow ? 'var(--good)' : (noiMargins[i]>=0?'var(--amber)':'var(--bad)')})),
+    data: rev.qLabels.map((lab,i)=>({label:lab, value: marginQ[i], color: marginQ[i]>=f.targets.noiMarginLow ? 'var(--good)' : (marginQ[i]>=0?'var(--amber)':'var(--bad)')})),
     valueFmt: v=>v.toFixed(0)+'%', width:900, height:230, target: f.targets.noiMarginLow, targetLabel:`${f.targets.noiMarginLow}–${f.targets.noiMarginHigh}% target`
   });
   document.getElementById('fin-margin').innerHTML = marginBars.svg;
-  wireTooltips(document.getElementById('fin-margin'), i=> `<div class="t-title">${f.months[i]}</div><div class="t-row">NOI margin: ${noiMargins[i].toFixed(1)}%</div>`);
+  wireTooltips(document.getElementById('fin-margin'), i=> `<div class="t-title">${rev.qLabels[i]}</div><div class="t-row">NOI margin: ${marginQ[i].toFixed(1)}%</div>`);
 
-  const ec = DATA.expenseComparison;
-  const controllableCats = ec.categories.filter(c=>c.group==='controllable');
-  const noncontrollableCats = ec.categories.filter(c=>c.group==='noncontrollable');
-
-  document.getElementById('fin-expense').innerHTML = stackedColumnChart({
-    labels: ec.periods, categories: controllableCats, width:900, height:360
-  });
-  document.getElementById('fin-expense').querySelectorAll('[data-gi]').forEach(el=>{
-    const gi = +el.dataset.gi, ci = +el.dataset.ci;
-    const cat = controllableCats[ci];
-    el.addEventListener('mousemove', evt=>{
-      showTip(evt, `<div class="t-title">${ec.periods[gi]} — ${cat.label}</div><div class="t-row">${fmt$(cat.values[gi])}/unit</div>`);
-    });
-    el.addEventListener('mouseleave', hideTip);
-  });
-  const expLegend = document.getElementById('fin-expense-legend');
-  controllableCats.forEach(c=>{
-    expLegend.innerHTML += `<div class="li"><span class="sw" style="background:${c.color}"></span>${c.label}</div>`;
-  });
-
-  const expTable = document.getElementById('expense-table');
-  expTable.innerHTML = `<thead>
-    <tr><th>$/Unit Annualized</th>${ec.periods.map(p=>`<th>${p}</th>`).join('')}</tr>
-    <tr><th></th>${ec.periodSub.map(s=>`<th style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;">${s}</th>`).join('')}</tr>
-  </thead>`;
-  const tbody = document.createElement('tbody');
-  function catRow(c){
-    const tr = document.createElement('tr');
-    tr.className = 'cat-row';
-    tr.dataset.cat = c.key;
-    tr.innerHTML = `<td><span class="disclosure">▸</span>${c.label}</td>${c.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-    tr.addEventListener('click', ()=>{
-      const expanding = !tr.classList.contains('expanded');
-      tr.classList.toggle('expanded');
-      tr.querySelector('.disclosure').textContent = expanding ? '▾' : '▸';
-      tbody.querySelectorAll(`tr.gl-detail[data-cat="${c.key}"]`).forEach(dr=>{
-        dr.style.display = expanding ? '' : 'none';
-      });
-    });
-    const detailRows = [];
-    const gl = DATA.expenseGLDetail[c.key];
-    if (gl) {
-      gl.forEach(a=>{
-        const dr = document.createElement('tr');
-        dr.className = 'gl-detail';
-        dr.dataset.cat = c.key;
-        dr.style.display = 'none';
-        dr.innerHTML = `<td>${a.name}</td>${a.values.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-        detailRows.push(dr);
-      });
-    }
-    return [tr, ...detailRows];
-  }
-  controllableCats.forEach(c=> catRow(c).forEach(r=> tbody.appendChild(r)));
-  const ctrlSubtotal = ec.periods.map((_,gi)=> controllableCats.reduce((a,c)=>a+c.values[gi],0));
-  const ctrlRow = document.createElement('tr');
-  ctrlRow.className='subtotal-row controllable';
-  ctrlRow.innerHTML = `<td>Controllable Subtotal</td>${ctrlSubtotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-  tbody.appendChild(ctrlRow);
-  noncontrollableCats.forEach(c=> catRow(c).forEach(r=> tbody.appendChild(r)));
-  const nonCtrlSubtotal = ec.periods.map((_,gi)=> noncontrollableCats.reduce((a,c)=>a+c.values[gi],0));
-  const nonCtrlRow = document.createElement('tr');
-  nonCtrlRow.className='subtotal-row noncontrollable';
-  nonCtrlRow.innerHTML = `<td>Non-Controllable Subtotal</td>${nonCtrlSubtotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-  tbody.appendChild(nonCtrlRow);
-  const grandTotal = ec.periods.map((_,gi)=> ctrlSubtotal[gi]+nonCtrlSubtotal[gi]);
-  const grandRow = document.createElement('tr');
-  grandRow.className='total-row';
-  grandRow.innerHTML = `<td>Grand Total</td>${grandTotal.map(v=>`<td>${fmt$(v)}</td>`).join('')}`;
-  tbody.appendChild(grandRow);
-  expTable.appendChild(tbody);
-
-  const cplData = DATA.marketing.sources.map(s=>({label:s.name, value:s.cpl, subject:s.name==='Apartments.com'}));
-  document.getElementById('cpl-chart').innerHTML = hBarChart({data: cplData, width:400, valueFmt: v=>'$'+v.toFixed(2), height:80});
-  wireTooltips(document.getElementById('cpl-chart'), i=>{
-    const s = DATA.marketing.sources[i];
-    return `<div class="t-title">${s.name}</div><div class="t-row">${fmt$1(s.monthlySpend)}/mo · ${s.leads} leads over ${s.months} mo</div><div class="t-row">CPL: ${fmt$1(s.cpl)}</div>`;
-  });
-
-  const cpleaseData = DATA.marketing.sources.map(s=>({label:s.name, value:s.cplease, subject:s.name==='Apartments.com'}));
-  document.getElementById('cplease-chart').innerHTML = hBarChart({data: cpleaseData, width:400, valueFmt: v=>'$'+v.toFixed(2), height:80});
-  wireTooltips(document.getElementById('cplease-chart'), i=>{
-    const s = DATA.marketing.sources[i];
-    return `<div class="t-title">${s.name}</div><div class="t-row">${fmt$1(s.monthlySpend)}/mo · ${s.leases} leases over ${s.months} mo</div><div class="t-row">Cost/Lease: ${fmt$1(s.cplease)}</div>`;
+  const occ = DATA.occupancy;
+  document.getElementById('fin-occ').innerHTML = lineChart({
+    labels: occ.trend.map(t=>t.month), series: occ.trend.map(t=>t.occPct),
+    target: occ.targetPhysical, targetLabel:`Target ${occ.targetPhysical}%`, width:900, height:220
   });
 }
 
